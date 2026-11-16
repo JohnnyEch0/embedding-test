@@ -1,9 +1,13 @@
 """Batch-embed words from .md files via the ScaDS AI API."""
 
+from __future__ import annotations
+
 import argparse
 import json
 import os
+from collections.abc import Iterator, Sequence
 from pathlib import Path
+from typing import Any
 
 from auth import client
 
@@ -12,7 +16,7 @@ DIMS = 128
 BATCH = 256
 
 
-def parse_args(argv=None):
+def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(
         description="Batch-embed words from .md files via the ScaDS AI API",
         epilog=("Input: directory of .md files. "
@@ -28,7 +32,7 @@ def parse_args(argv=None):
     return p.parse_args(argv)
 
 
-def iter_md_files(input_dir):
+def iter_md_files(input_dir: str | Path) -> Iterator[Path]:
     """Yield Path objects of .md files in input_dir."""
     for fname in sorted(os.listdir(input_dir)):
         path = Path(input_dir) / fname
@@ -36,7 +40,7 @@ def iter_md_files(input_dir):
             yield path
 
 
-def parse_md_lines(lines):
+def parse_md_lines(lines: Sequence[str]) -> list[dict[str, Any]]:
     """Parse raw lines into records: [{line_index, line, words}]."""
     records = []
     for idx, line in enumerate(lines):
@@ -46,9 +50,15 @@ def parse_md_lines(lines):
     return records
 
 
-def embed(words, client, model, dims, batch):
+def embed(
+    words: Sequence[str],
+    client: Any,
+    model: str,
+    dims: int,
+    batch: int,
+) -> list[list[float]]:
     """Embed flat word list via API in chunks."""
-    out = []
+    out: list[list[float]] = []
     for i in range(0, len(words), batch):
         chunk = words[i:i + batch]
         resp = client.embeddings.create(model=model, input=chunk, dimensions=dims)
@@ -56,7 +66,10 @@ def embed(words, client, model, dims, batch):
     return out
 
 
-def attach_embeddings(records, vectors):
+def attach_embeddings(
+    records: list[dict[str, Any]],
+    vectors: Sequence[Sequence[float]],
+) -> list[dict[str, Any]]:
     """Return new records with words → [{word, embedding}] dicts (pure)."""
     out = []
     pos = 0
@@ -71,7 +84,12 @@ def attach_embeddings(records, vectors):
     return out
 
 
-def write_jsonl(records, out_dir, dims, stem):
+def write_jsonl(
+    records: Sequence[dict[str, Any]],
+    out_dir: str | Path,
+    dims: int,
+    stem: str,
+) -> Path:
     """Write records to JSONL, return path. Assumes out_dir exists."""
     out_path = Path(out_dir) / f"eg2_d{dims}_{stem}.jsonl"
     with open(out_path, "w", encoding="utf-8") as f:
@@ -80,7 +98,14 @@ def write_jsonl(records, out_dir, dims, stem):
     return out_path
 
 
-def embed_file(path, client, model, dims, batch, out_dir):
+def embed_file(
+    path: str | Path,
+    client: Any,
+    model: str,
+    dims: int,
+    batch: int,
+    out_dir: str | Path,
+) -> tuple[Path, int, int] | None:
     """Embed one .md file, write JSONL, return summary."""
     path = Path(path)
     out_dir = Path(out_dir)
@@ -97,7 +122,7 @@ def embed_file(path, client, model, dims, batch, out_dir):
     return out_path, len(records), len(all_words)
 
 
-def main(argv=None):
+def main(argv: Sequence[str] | None = None) -> None:
     args = parse_args(argv)
     os.makedirs(args.output, exist_ok=True)
     for path in iter_md_files(args.input):
