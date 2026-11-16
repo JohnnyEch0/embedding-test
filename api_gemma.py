@@ -1,40 +1,49 @@
-import os
+"""Batch-embed words from .md files via the ScaDS AI API."""
+
+import argparse
 import json
-from openai import OpenAI
-from auth import my_api_key
-# setup
+import os
 
+from auth import client
 
-
-# load model
-client = OpenAI(base_url="https://llm.scads.ai/v1", api_key=my_api_key)
-MODEL = "google/embeddinggemma-2"
-
-# vars
-IN_DIR = "poem"
-OUT_DIR = "poem_emb"
 MODEL = "google/embeddinggemma-2"
 DIMS = 128
 BATCH = 256
 
-os.makedirs(OUT_DIR, exist_ok=True)
 
-def embed(words):
+def parse_args(argv=None):
+    p = argparse.ArgumentParser(
+        description="Batch-embed words from .md files via the ScaDS AI API",
+        epilog=("Input: directory of .md files. "
+                "Output: JSONL, one record per line."),
+    )
+    p.add_argument("input", help="Directory containing .md files")
+    p.add_argument("output", help="Output directory for JSONL files")
+    p.add_argument("--model", default=MODEL, help="Embedding model (default: %(default)s)")
+    p.add_argument("--dims", type=int, default=DIMS,
+                   help="Embedding dimensions (default: %(default)s)")
+    p.add_argument("--batch", type=int, default=BATCH,
+                   help="Words per API call (default: %(default)s)")
+    return p.parse_args(argv)
+
+
+def embed(words, client, model, dims, batch):
     out = []
-    for i in range(0, len(words), BATCH):
-        chunk = words[i:i + BATCH]
-        resp = client.embeddings.create(model=MODEL, input=chunk, dimensions=DIMS)
+    for i in range(0, len(words), batch):
+        chunk = words[i:i + batch]
+        resp = client.embeddings.create(model=model, input=chunk, dimensions=dims)
         out.extend(item.embedding for item in sorted(resp.data, key=lambda d: d.index))
     return out
 
 
+def main(argv=None):
+    args = parse_args(argv)
+    os.makedirs(args.output, exist_ok=True)
 
-def main():
-    for fname in sorted(os.listdir(IN_DIR)):
-        path = os.path.join(IN_DIR, fname)
+    for fname in sorted(os.listdir(args.input)):
+        path = os.path.join(args.input, fname)
         if not os.path.isfile(path) or not fname.endswith(".md"):
             continue
-
         with open(path, encoding="utf-8") as f:
             lines = f.read().splitlines()
 
@@ -47,9 +56,12 @@ def main():
             records.append({"line_index": idx, "line": line, "words": words})
             all_words.extend(words)
 
-        vectors = embed(all_words)
+        if not all_words:
+            continue
 
-        out_path = os.path.join(OUT_DIR, "eg2_d128_" + fname[:-3] + ".jsonl")
+        vectors = embed(all_words, client, args.model, args.dims, args.batch)
+
+        out_path = os.path.join(args.output, f"eg2_d{args.dims}_{fname[:-3]}.jsonl")
         with open(out_path, "w", encoding="utf-8") as f:
             pos = 0
             for rec in records:
