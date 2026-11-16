@@ -3,13 +3,25 @@
 [ext_resource type="Script" uid="uid://buwiedcpbttlm" path="res://character_body_3d.gd" id="1_0xm2m"]
 [ext_resource type="Script" uid="uid://ct1hpf3weoa8x" path="res://main.gd" id="1_h2yge"]
 [ext_resource type="Script" uid="uid://t7cwwx4rwxi0" path="res://spheres.gd" id="1_ig7tw"]
+[ext_resource type="Shader" uid="uid://d0ghiwya5633m" path="res://space.gdshader" id="2_1bvp3"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_h2yge"]
+shader = ExtResource("2_1bvp3")
+shader_parameter/noise_scale = 8.0
+shader_parameter/noise_strength = 0.04
+shader_parameter/tint_a = Color(0.01, 0.015, 0.03, 1)
+shader_parameter/tint_b = Color(0.03, 0.01, 0.025, 1)
 
 [sub_resource type="Sky" id="Sky_x8060"]
+sky_material = SubResource("ShaderMaterial_h2yge")
 
 [sub_resource type="Environment" id="Environment_aa68f"]
 background_mode = 2
 background_energy_multiplier = 8.23
 sky = SubResource("Sky_x8060")
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.01
+volumetric_fog_sky_affect = 0.2
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_aa68f"]
 

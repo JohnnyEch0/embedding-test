@@ -1,0 +1,6 @@
+[gd_resource type="Resource" format=3 uid="uid://cda0vb2lpyyka"]
+
+[ext_resource type="Script" uid="uid://ciqd5q2x54dwa" path="res://resources/emb_star_data.gd" id="1_rhvuu"]
+
+[resource]
+script = ExtResource("1_rhvuu")

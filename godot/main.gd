@@ -1,8 +1,9 @@
 extends Node3D
-
+var stars_node 
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	stars_node = $"Spheres"
 	pass # Replace with function body.
 
 
@@ -14,4 +15,12 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("exit"):
 		get_tree().quit()
+	if event.is_action_pressed("debug_view"):
+		
+		for star:EmbStar in stars_node.stars:
+			star.label.visibility_range_end = 5000000
+	if event.is_action_released("debug_view"):
+		for star:EmbStar in stars_node.stars:
+			star.label.visibility_range_end = 5
+		
 	pass

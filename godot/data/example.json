@@ -1,0 +1,8 @@
+{
+	"type": "Poem-Embeddings",
+	"schema_version": 0,
+	"author": "Mary Oliver",
+	"title": "Wild Geese",
+	"model": "Embedding-Gemma-2",
+	"dimensions": 128
+}
