@@ -9,7 +9,102 @@ from types import SimpleNamespace
 import api_gemma
 
 
-# fake client matching openai interface
+# --- iter_md_files ---
+
+
+class TestIterMdFiles:
+
+    def test_only_md_yielded_sorted(self, tmp_path):
+        (tmp_path / "a.md").write_text("x")
+        (tmp_path / "b.txt").write_text("x")
+        (tmp_path / "sub").mkdir()
+        (tmp_path / "sub" / "inner.md").write_text("x")
+        assert list(api_gemma.iter_md_files(tmp_path)) == [tmp_path / "a.md"]
+
+    def test_empty_dir(self, tmp_path):
+        assert list(api_gemma.iter_md_files(tmp_path)) == []
+
+
+# --- parse_md_lines ---
+
+class TestParseMdLines:
+
+    def test_blank_lines_skipped_index_preserved(self):
+        lines = ["hello world", "", "   ", "foo bar"]
+        records = api_gemma.parse_md_lines(lines)
+        assert records == [
+            {"line_index": 0, "line": "hello world", "words": ["hello", "world"]},
+            {"line_index": 3, "line": "foo bar", "words": ["foo", "bar"]},
+        ]
+
+    def test_all_blank(self):
+        assert api_gemma.parse_md_lines(["", "", ""]) == []
+
+
+# --- write_jsonl ---
+
+class TestWriteJsonl:
+
+    def test_writes_jsonl_returns_path(self, tmp_path):
+        records = [
+            {"line_index": 0, "line": "hello world", "words": [
+                {"word": "hello", "embedding": [0.1]},
+                {"word": "world", "embedding": [0.2]},
+            ]},
+        ]
+        path = api_gemma.write_jsonl(records, tmp_path, dims=64, stem="test")
+        assert path == tmp_path / "eg2_d64_test.jsonl"
+        assert path.exists()
+        assert json.loads(path.read_text()) == records[0]
+
+
+# --- attach_embeddings ---
+
+class TestAttachEmbeddings:
+
+    def test_returns_new_records_and_does_not_mutate(self, tmp_path):
+        records = [
+            {"line_index": 0, "line": "hello world", "words": ["hello", "world"]},
+            {"line_index": 2, "line": "foo bar", "words": ["foo", "bar"]},
+        ]
+        vectors = [[0.1], [0.2], [0.3], [0.4]]
+        out = api_gemma.attach_embeddings(records, vectors)
+        assert out == [
+            {"line_index": 0, "line": "hello world", "words": [
+                {"word": "hello", "embedding": [0.1]},
+                {"word": "world", "embedding": [0.2]},
+            ]},
+            {"line_index": 2, "line": "foo bar", "words": [
+                {"word": "foo", "embedding": [0.3]},
+                {"word": "bar", "embedding": [0.4]},
+            ]},
+        ]
+        # original untouched
+        assert records[0]["words"] == ["hello", "world"]
+        assert records[1]["words"] == ["foo", "bar"]
+
+
+# --- embed_file ---
+
+class TestEmbedFile:
+
+    def test_end_to_end(self, tmp_path, fake_client):
+        (tmp_path / "in").mkdir()
+        (tmp_path / "in" / "test.md").write_text("hello world\nfoo bar\n")
+        out = tmp_path / "out"
+        out.mkdir()
+        api_gemma.embed_file(tmp_path / "in" / "test.md", fake_client, "google/embeddinggemma-2", 64, 4, out)
+        files = list(out.glob("eg2_d64_*.jsonl"))
+        assert len(files) == 1
+        recs = [json.loads(ln) for ln in files[0].read_text().splitlines() if ln.strip()]
+        assert len(recs) == 2
+        assert all(len(e) == 64 for e in [w["embedding"] for w in recs[0]["words"]])
+
+    def test_empty_md_ignored(self, tmp_path, fake_client):
+        (tmp_path / "in").mkdir()
+        (tmp_path / "in" / "empty.md").write_text("")
+        api_gemma.embed_file(tmp_path / "in" / "empty.md", fake_client, "google/embeddinggemma-2", 64, 4, tmp_path / "out")
+        assert list((tmp_path / "out").iterdir()) == []
 class FakeEmbeddings:
     """Records create() calls, returns canned vectors sliced to the asked dims."""
 
