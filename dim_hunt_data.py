@@ -38,6 +38,7 @@ def load_jsonl(path):
             if not raw:
                 continue
             obj = json.loads(raw)
+            if not obj.get("line_index"): continue
             li, line = obj["line_index"], obj["line"]
             for wpos, w in enumerate(obj["words"]):
                 rows.append(
