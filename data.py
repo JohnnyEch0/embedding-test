@@ -3,8 +3,9 @@ classes to load and save the used the embeddings
 """
 import helpers
 import json
-
+from dataclasses import dataclass
 import numpy as np
+from pathlib import Path
 class Metadata():
     def __init__(self) -> None:
         self.schema_version:int
@@ -125,13 +126,75 @@ class LinewiseEmbeddingPerWord():
     def __repr__(self) -> str:
         return f"Linewise Poem Embeddings of {len(self.lines)=} {self.lines[0]}"
 
+class PoemLine():
+    def __init__(self, words:tuple[str, ...]) -> None:
+        self.words : tuple[str, ...] = words
 
+    def to_str(self)->str:
+        s = ""
+        for w in self.words:
+            s += w + " "
+
+        return s
+
+class PoemVerse():
+    def __init__(self,lines:tuple[PoemLine, ...]) -> None:
+        self.lines:tuple[PoemLine, ...]= lines
+
+    def to_str(self)->str:
+        s = ""
+        for l in self.lines:
+            s += l.to_str() + "\n"
+        return s
+
+class Poem():
+    def __init__(self) -> None:
+        self.verses:tuple[PoemVerse, ...]
+
+
+
+
+    @classmethod
+    def from_markdown(cls, path:Path):
+        blocks = path.read_text(encoding="utf-8").split("\n\n")# splitlines()
+        verses = []
+        for b in blocks:
+            # get lines
+            lines = tuple(PoemLine(tuple(l.split())) for l in b.splitlines())
+            verses.append(PoemVerse(lines))
+        p = Poem()
+        p.verses = tuple(v for v in verses)
+
+        return p
+
+    def to_str(self)->str:
+            s = ""
+            for v in self.verses:
+                s += v.to_str() + "\n"
+            return s
+
+    def print(self):
+        print(self.to_str())
+
+@dataclass(frozen=True)
+class Embedding():
+    def __init__(self) -> None:
+        self.string:str
+        self.values:tuple[float,...]
 
 if __name__ == "__main__":
-    instance = LinewiseEmbeddingPerWord.from_jsonl("poem_emb/linewise_emb-per-word/eg2_d128_wild-geese_mary-oliver.jsonl")
 
-    instance.to_json()
+    p = Path("poem/wild-geese_mary-oliver.md")
+    poem = Poem.from_markdown(p)
+    poem.print()
+
+    print(len(poem.verses))
+
+    instance = LinewiseEmbeddingPerWord.from_jsonl("poem_emb/linewise_emb-per-word/eg2_d128_wild-geese_mary-oliver.jsonl")
+    # instance.to_json()
     # instance.print_embeddings()
+    # for k,v in instance.emb_dict.items():
+    #     print(len(v), type(v[0]))
     # print(instance)
     # print(instance.near_constant_dims())
     # print(instance.near_constant_dims_quantile(0.1))
