@@ -3,28 +3,51 @@ extends Node3D
 const STAR_SCENE = preload("res://emb_star.tscn")
 
 const SCALE := 1000
-var datapath := "res://data/sample.json"
+@export var datapath := "res://data"
+@export var default_filename := ""
 var stars: Array[EmbStar] = []
 
 
 @export var radius: float = 0.5
 @export var show_lines := false
+
 func _read_json() -> Variant:
-	var json = JSON.new()
-	var file = FileAccess.open(datapath, FileAccess.READ)
+	var path := _resolve_path()
+	if path == "":
+		return null
+	var json := JSON.new()
+	var file := FileAccess.open(path, FileAccess.READ)
 	if file == null:
-		print("File error: ", )
-	var error = json.parse(file.get_as_text())
-	if error == OK:
-		var data = json.data
-		return data
-	else:
-		push_error("JSON Parse Error: ", json.get_error_message(), json.get_error_line())
-		return error
+		push_error("Failed to open: " + path)
+		return null
+	var error := json.parse(file.get_as_text())
+	if error != OK:
+		push_error("JSON Parse Error: %s (line %d)" % [json.get_error_message(), json.get_error_line()])
+		return null
+	return json.data
+
+
+func _resolve_path() -> String:
+	# Default filename set → use it
+	if default_filename != "" and FileAccess.file_exists(datapath + "/" + default_filename):
+		return datapath + "/" + default_filename
+	# Otherwise pick a random file from the directory
+	var dir := DirAccess.open(datapath)
+	if dir == null:
+		push_error("Data directory not found: " + datapath)
+		return ""
+	var files := dir.get_files()
+	if files.is_empty():
+		push_error("No files found in: " + datapath)
+		return ""
+	return datapath + "/" + files[randi() % files.size()]
 		
 
 func _ready() -> void:
 	var data = _read_json()
+	if data == null:
+		push_error("Failed to load JSON data from " + datapath)
+		return
 	var star_data: Array[EmbStarData] = []
 	var first_line: String = data["lines"][0]
 	var emb_dict = data["embedding_dict"]
