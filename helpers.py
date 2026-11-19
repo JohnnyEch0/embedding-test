@@ -1,6 +1,7 @@
 import json
+from typing import Any
 
-def load_jsonl(path:str) -> list[str], dict[str, list[float]], any :
+def load_jsonl(path:str) -> tuple[list[str], dict[str, list[float]], Any] :
     """ File reading function coupled to concrete structure."""
     lines:list[str] = []
     emb_dict: dict[str, list[float]] = {}
