@@ -14,12 +14,13 @@ Protocol:
 ## To Do
 
 - [1] Dim-hunt stage: dimension analysis (near-constant dims, redundant pairs, spread/offset ranking) over `PoemEmbeddings.load()` output — the unprocessed → analyzed pipeline step.
+- [2] Rebuild `dim_hunt_app.py` on the new format — merged with `dim_hunt_data.py`, JSONL load removed, crashes at startup by design (`0b67de5`); remaining: `PoemEmbeddings.load()`-based loader, token matrix, callbacks, `app.run()`.
 - [3] Regenerate godot `data/sample*.json` from `poem_emb/eg2_d128_wild-geese_mary-oliver.json` (+ dim-analysis output); define godot schema together with `spheres.gd` migration (still reads legacy `embedding_dict`).
 - [4] Authorship metadata: `--author/--title` flags or per-poem manifest — headers currently carry `author: null`, `title` = filename stem.
 
 ## In Progress
 
-- [2] Rebuild `dim_hunt_app.py` on the new format — merged with `dim_hunt_data.py`, JSONL load removed, crashes at startup by design (`0b67de5`); remaining: `PoemEmbeddings.load()`-based loader, token matrix, callbacks, `app.run()`.
+
 
 ## Done
 
