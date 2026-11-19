@@ -1,29 +1,82 @@
-"""Interactive 1D/2D/3D embedding dimension explorer."""
-import sys
+"""Interactive 1D/2D/3D embedding dimension explorer.
 
+Single-file app: format-agnostic analysis helpers + Dash UI design target.
+
+STATUS: no data source. The legacy JSONL load was removed; the standard-JSON
+loader is not implemented yet. Starting this program raises
+NotImplementedError. TODO(card [1]/[2]): load via PoemEmbeddings.load(),
+build the token matrix, repopulate DIM_OPTS/LINE_OPTS, re-enable the
+callbacks (currently commented) and app.run().
+"""
 import numpy as np
+import pandas as pd
 import plotly.graph_objects as go
-from dash import Dash, Input, Output, State, dcc, html, dash_table
+from dash import Dash, Output, dcc, html, dash_table
 
-from dim_hunt_data import (
-    load_jsonl,
-    dedupe,
-    dim_stats,
-    center_standardize,
-    compute_pca,
+# ---------------------------------------------------------------------------
+# Data loading -- intentionally absent. Crash loudly at startup until the
+# PoemEmbeddings-based loader lands (KANBAN cards [1] and [2]).
+# ---------------------------------------------------------------------------
+raise NotImplementedError(
+    "dim-hunt has no data source: the legacy JSONL load was removed and the "
+    "standard-JSON loader is not implemented yet (KANBAN cards [1] and [2]). "
+    "Planned fix: PoemEmbeddings.load() over poem_emb/*.json."
 )
 
-# TODO(new-format): consume via PoemEmbeddings.load() (standard single JSON);
-# rebuild dim-hunt on the new format, then restore the load below.
-# PATH = sys.argv[1] if len(sys.argv) > 1 else "poem.jsonl"
-#
-# DF_FULL, X_FULL = load_jsonl(PATH)
-# N_DIMS = X_FULL.shape[1]
-# print(f"[info] {len(DF_FULL)} tokens, {N_DIMS} dims, "
-#       f"{DF_FULL['line_index'].nunique()} lines")
-#
-DIM_OPTS: list = []
-LINE_OPTS: list = []  # stubbed while the legacy load is disabled
+
+# ---------------------------------------------------------------------------
+# Data analysis (format-agnostic, usable standalone)
+# ---------------------------------------------------------------------------
+
+def dim_stats(X):
+    """Per-dimension ranking table. X: (n, d)."""
+    mean = X.mean(0)
+    std = X.std(0)
+    var = X.var(0)
+    rng = X.max(0) - X.min(0)
+    # excess kurtosis, guarded against ~zero variance
+    safe = np.where(std < 1e-8, 1.0, std)
+    z = (X - mean) / safe
+    kurt = (z ** 4).mean(0) - 3.0
+    kurt[std < 1e-8] = 0.0
+
+    out = pd.DataFrame(
+        {
+            "dim": np.arange(X.shape[1]),
+            "mean": mean,
+            "std": std,
+            "var": var,
+            "range": rng,
+            "kurtosis": kurt,
+            "abs_mean": np.abs(mean),
+        }
+    )
+    # "informative" = high spread relative to offset
+    out["spread_over_offset"] = out["std"] / (out["abs_mean"] + 1e-6)
+    return out.sort_values("var", ascending=False).reset_index(drop=True)
+
+
+def center_standardize(X, center=True, standardize=True):
+    Z = X.astype(np.float32).copy()
+    if center:
+        Z -= Z.mean(0, keepdims=True)
+    if standardize:
+        s = Z.std(0, keepdims=True)
+        Z /= np.where(s < 1e-8, 1.0, s)
+    return Z
+
+
+def compute_pca(X, n_components=3):
+    """STUB. Intentionally no implementation (shows 'not implemented' in the UI)."""
+    pass
+
+
+# ---------------------------------------------------------------------------
+# App (design target; unreachable until the loader lands)
+# ---------------------------------------------------------------------------
+
+DIM_OPTS: list = []   # future: [{"label": f"dim {i}", "value": i} ...]
+LINE_OPTS: list = []  # future: [{"label": f"{i}: {line text}", "value": i} ...]
 
 app = Dash(__name__)
 app.title = "Embedding Dimension Explorer"
@@ -149,136 +202,28 @@ app.layout = html.Div(
 )
 
 
-def _subset(line_sel, search, unique):
-    df, X = DF_FULL, X_FULL
-    if unique:
-        df, X = dedupe(df, X)
-    m = np.ones(len(df), bool)
-    if line_sel != -1:
-        m &= (df["line_index"] == line_sel).values
-    if search:
-        m &= df["word"].str.contains(search, case=False, regex=False).values
-    return df[m].reset_index(drop=True), X[m]
-
-
-@app.callback(Output("rank-table", "children"), Input("rank-by", "value"))
-def _rank(by):
-    s = dim_stats(X_FULL).sort_values(by, ascending=False).head(25)
-    s = s[["dim", "var", "std", "abs_mean", "kurtosis", "spread_over_offset"]].round(4)
-    return dash_table.DataTable(
-        data=s.to_dict("records"),
-        columns=[{"name": c, "id": c} for c in s.columns],
-        style_cell={"fontSize": "11px", "padding": "2px"},
-        style_table={"maxHeight": "320px", "overflowY": "auto"},
-    )
-
-
-@app.callback(
-    Output("plot", "figure"),
-    Output("pca-note", "children"),
-    Input("ndim", "value"), Input("one-d-style", "value"), Input("source", "value"),
-    Input("dx", "value"), Input("dy", "value"), Input("dz", "value"),
-    Input("prep", "value"), Input("color", "value"), Input("dc", "value"),
-    Input("flags", "value"), Input("line-sel", "value"), Input("search", "value"),
-)
-def _plot(ndim, style, source, dx, dy, dz, prep, color, dc, flags, line_sel, search):
-    note = ""
-    if source == "pca":
-        if compute_pca(X_FULL, 3) is None:
-            note = "PCA backend not implemented (stub). Falling back to raw dims."
-
-    df, X = _subset(line_sel, search, "unique" in flags)
-    if len(df) == 0:
-        return go.Figure(layout={"title": "no tokens match filter"}), note
-
-    Z = center_standardize(X, "center" in prep, "standardize" in prep)
-
-    # --- size -----------------------------------------------------------------
-    size = np.full(len(df), 11.0)
-    if "shrink" in flags:
-        size[df["is_filler"].values] = 3.5
-
-    # --- color ----------------------------------------------------------------
-    marker = {"size": size, "opacity": 0.85, "line": {"width": 0}}
-    if color == "line":
-        marker.update(color=df["line_index"], colorscale="Turbo", showscale=True)
-    elif color == "dim":
-        marker.update(color=Z[:, dc], colorscale="RdBu", showscale=True,
-                      colorbar={"title": f"dim {dc}"})
-    elif color == "len":
-        marker.update(color=df["word"].str.len(), colorscale="Viridis", showscale=True)
-    elif color == "count":
-        marker.update(color=df["count"], colorscale="Cividis", showscale=True)
-    elif color == "filler":
-        marker.update(color=df["is_filler"].astype(int), colorscale="Bluered",
-                      showscale=False)
-
-    hover = [f"{w}<br>line {li}: {ln}"
-             for w, li, ln in zip(df["word"], df["line_index"], df["line"])]
-    order = np.argsort(df["order"].values)  # reading order for path
-    draw_path = "path" in flags
-
-    fig = go.Figure()
-
-    # ----- 1D -----------------------------------------------------------------
-    if ndim == 1:
-        v = Z[:, dx]
-        if style == "hist":
-            fig.add_trace(go.Histogram(x=v, nbinsx=40))
-        else:
-            y = (np.random.default_rng(0).normal(0, 0.25, len(v))
-                 if style == "jitter" else np.zeros(len(v)))
-            mode = "markers" if style != "rug" else "markers"
-            fig.add_trace(go.Scatter(
-                x=v, y=y, mode=mode, marker=marker, text=hover,
-                hoverinfo="text", name="words"))
-            if style == "rug":
-                for xi in v:
-                    fig.add_shape(type="line", x0=xi, x1=xi, y0=-0.3, y1=0.3,
-                                  line={"width": 1, "color": "#888"})
-            if draw_path and style != "hist":
-                fig.add_trace(go.Scatter(
-                    x=v[order], y=y[order], mode="lines",
-                    line={"width": 1, "color": "rgba(80,80,80,0.4)"},
-                    hoverinfo="skip", name="poem path"))
-            fig.update_yaxes(visible=(style == "jitter"))
-        fig.update_xaxes(title=f"dim {dx}")
-
-    # ----- 2D -----------------------------------------------------------------
-    elif ndim == 2:
-        fig.add_trace(go.Scattergl(
-            x=Z[:, dx], y=Z[:, dy], mode="markers+text" if len(df) < 120 else "markers",
-            text=df["word"], textposition="top center", textfont={"size": 8},
-            hovertext=hover, hoverinfo="text", marker=marker, name="words"))
-        if draw_path:
-            fig.add_trace(go.Scattergl(
-                x=Z[order, dx], y=Z[order, dy], mode="lines",
-                line={"width": 1, "color": "rgba(80,80,80,0.4)"},
-                hoverinfo="skip", name="poem path"))
-        fig.update_xaxes(title=f"dim {dx}")
-        fig.update_yaxes(title=f"dim {dy}")
-
-    # ----- 3D -----------------------------------------------------------------
-    else:
-        fig.add_trace(go.Scatter3d(
-            x=Z[:, dx], y=Z[:, dy], z=Z[:, dz],
-            mode="markers+text" if len(df) < 120 else "markers",
-            text=df["word"], textfont={"size": 9},
-            hovertext=hover, hoverinfo="text", marker=marker, name="words"))
-        if draw_path:
-            fig.add_trace(go.Scatter3d(
-                x=Z[order, dx], y=Z[order, dy], z=Z[order, dz], mode="lines",
-                line={"width": 2, "color": "rgba(80,80,80,0.5)"},
-                hoverinfo="skip", name="poem path"))
-        fig.update_layout(scene={"xaxis_title": f"dim {dx}",
-                                 "yaxis_title": f"dim {dy}",
-                                 "zaxis_title": f"dim {dz}"})
-
-    fig.update_layout(margin={"l": 0, "r": 0, "t": 30, "b": 0},
-                      showlegend=False,
-                      title=f"{len(df)} tokens | prep: {', '.join(prep) or 'none'}")
-    return fig, note
+# ---------------------------------------------------------------------------
+# Callbacks -- DEAD until the loader lands: they consume the removed
+# word-level DataFrame (DF_FULL/X_FULL) and its filler/count columns.
+# Revive with card [1]/[2] on top of PoemEmbeddings.
+# ---------------------------------------------------------------------------
+#
+# def _subset(line_sel, search, unique):
+#     ...
+#
+# @app.callback(Output("rank-table", "children"), Input("rank-by", "value"))
+# def _rank(by):
+#     ...
+#
+# @app.callback(
+#     Output("plot", "figure"),
+#     Output("pca-note", "children"),
+#     Input("ndim", "value"), ...
+# )
+# def _plot(ndim, style, source, dx, dy, dz, prep, color, dc, flags, line_sel, search):
+#     ...
 
 
 if __name__ == "__main__":
+    # unreachable: the module-level raise above fires first
     app.run(debug=True)
