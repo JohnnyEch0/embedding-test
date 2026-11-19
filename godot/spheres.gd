@@ -3,6 +3,7 @@ extends Node3D
 const STAR_SCENE = preload("res://emb_star.tscn")
 
 const SCALE := 1000
+const ORIGIN = Vector3(0,0,0)
 @export var datapath := "res://data"
 @export var default_filename := ""
 var stars: Array[EmbStar] = []
@@ -10,6 +11,7 @@ var stars: Array[EmbStar] = []
 
 @export var radius: float = 0.5
 @export var show_lines := false
+@export var draw_lines_origin := false
 
 func _read_json() -> Variant:
 	var path := _resolve_path()
@@ -48,18 +50,27 @@ func _ready() -> void:
 	if data == null:
 		push_error("Failed to load JSON data from " + datapath)
 		return
-	var star_data: Array[EmbStarData] = []
-	var first_line: String = data["lines"][0]
-	var emb_dict = data["embedding_dict"]
 
-	for word in first_line.split(" "):
+	# Store all data in temporaries
+	var metadata: Dictionary = data.get("metadata", {})
+	var lines: Array = data.get("lines", [])
+	var verses: Array = data.get("verses", [])
+	var poem: Dictionary = data.get("poem", {})
+
+	if lines.is_empty():
+		push_error("No lines in JSON data")
+		return
+
+	var first_line: Dictionary = lines[0]
+	var words: Array = first_line.get("words", [])
+	var star_data: Array[EmbStarData] = []
+
+	for w in words:
+		var emb: Array = w["embedding"].slice(0, 3)
 		var single_star_data = EmbStarData.new()
-		var emb = emb_dict[word].slice(0, 3)
-		# print(word, emb)
-		single_star_data.label = word
+		single_star_data.label = w["word"]
 		single_star_data.spawn_pos = Vector3(emb[0] * SCALE, emb[1] * SCALE, emb[2] * SCALE)
 		star_data.append(single_star_data)
-
 
 	var pairs: Array = []
 	var prev: MeshInstance3D = null
@@ -70,21 +81,23 @@ func _ready() -> void:
 
 		add_child(inst)
 		stars.append(inst)
-		if prev: pairs.append([prev, inst])
+		if prev: pairs.append([prev.position, inst.position])
 		prev = inst
 
-		#print("Star created at %s", inst.position)
-		#print("Star created at %s", inst.mesh)
-
 	if show_lines:
+		draw_lines(pairs)
+	if draw_lines_origin:
+		pairs = []
+		for sd in star_data:
+			pairs.append([sd.spawn_pos, ORIGIN])
 		draw_lines(pairs)
 
 
 func draw_lines(pairs: Array):
 	var verts := PackedVector3Array()
 	for p in pairs:
-		verts.append(p[0].position)
-		verts.append(p[1].position)
+		verts.append(p[0])
+		verts.append(p[1])
 	var arrays := []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = verts
