@@ -33,8 +33,8 @@ class TestParseMdLines:
         lines = ["hello world", "", "   ", "foo bar"]
         records = api_gemma.parse_md_lines(lines)
         assert records == [
-            {"line_index": 0, "line": "hello world", "words": ["hello", "world"]},
-            {"line_index": 3, "line": "foo bar", "words": ["foo", "bar"]},
+            api_gemma.Record(line_index=0, line="hello world", words=["hello", "world"]),
+            api_gemma.Record(line_index=3, line="foo bar", words=["foo", "bar"]),
         ]
 
     def test_all_blank(self):
@@ -64,8 +64,8 @@ class TestAttachEmbeddings:
 
     def test_returns_new_records_and_does_not_mutate(self, tmp_path):
         records = [
-            {"line_index": 0, "line": "hello world", "words": ["hello", "world"]},
-            {"line_index": 2, "line": "foo bar", "words": ["foo", "bar"]},
+            api_gemma.Record(line_index=0, line="hello world", words=["hello", "world"]),
+            api_gemma.Record(line_index=2, line="foo bar", words=["foo", "bar"]),
         ]
         vectors = [[0.1], [0.2], [0.3], [0.4]]
         out = api_gemma.attach_embeddings(records, vectors)
@@ -80,8 +80,8 @@ class TestAttachEmbeddings:
             ]},
         ]
         # original untouched
-        assert records[0]["words"] == ["hello", "world"]
-        assert records[1]["words"] == ["foo", "bar"]
+        assert records[0].words == ["hello", "world"]
+        assert records[1].words == ["foo", "bar"]
 
 
 # --- embed_file ---
