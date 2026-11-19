@@ -144,9 +144,47 @@ def tmp_dirs(tmp_path):
     return inp, out
 
 
+# --- strip_frontmatter ---
+
+class TestStripFrontmatter:
+
+    def test_strips_frontmatter(self):
+        text = "---\ntitle: Test\nauthor: Someone\n---\n\nBody line 1.\nBody line 2."
+        assert api_gemma.strip_frontmatter(text) == "Body line 1.\nBody line 2."
+
+    def test_no_frontmatter(self):
+        text = "Just a poem.\nNo frontmatter."
+        assert api_gemma.strip_frontmatter(text) == text
+
+    def test_unclosed_frontmatter(self):
+        text = "---\ntitle: Test\nNo closing"
+        assert api_gemma.strip_frontmatter(text) == text
+
+    def test_empty_frontmatter(self):
+        text = "---\n---\n\nBody"
+        assert api_gemma.strip_frontmatter(text) == "Body"
+
+
 # --- poem_texts ---
 
 class TestPoemTexts:
+
+    def test_frontmatter_stripped(self, tmp_path):
+        """Frontmatter must not leak into words/lines/verses."""
+        md = tmp_path / "t.md"
+        md.write_text(
+            "---\n"
+            "title: Test Poem\n"
+            "author: Someone\n"
+            "---\n"
+            "\n"
+            "alpha beta\n"
+            "gamma\n"
+        )
+        words, raw_lines, verse_infos, poem_text = api_gemma.poem_texts(md)
+        assert words == ["alpha", "beta", "gamma"]
+        assert raw_lines == ["alpha beta", "gamma"]
+        assert len(verse_infos) == 1
 
     def test_two_stanzas(self, tmp_path):
         md = tmp_path / "t.md"

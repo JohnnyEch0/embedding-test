@@ -108,6 +108,17 @@ def write_jsonl(
     return out_path
 
 
+def strip_frontmatter(text: str) -> str:
+    """Strip YAML frontmatter (--- ... ---) from text; return body."""
+    if not text.startswith("---"):
+        return text
+    lines = text.splitlines()
+    for i in range(1, len(lines)):
+        if lines[i].strip() == "---":
+            return "\n".join(lines[i + 1:]).lstrip("\n")
+    return text
+
+
 def poem_texts(
     path: str | Path,
 ) -> tuple[list[str], list[str], list[tuple[str, tuple[int, int]]], str]:
@@ -119,10 +130,11 @@ def poem_texts(
     texts with "\n\n".
     """
     p = Path(path)
+    text = strip_frontmatter(p.read_text(encoding="utf-8"))
     words: list[str] = []
     raw_lines: list[str] = []
     verse_infos: list[tuple[str, tuple[int, int]]] = []
-    for block in p.read_text(encoding="utf-8").split("\n\n"):
+    for block in text.split("\n\n"):
         block_lines = [ln for ln in block.splitlines() if ln.strip()]
         if not block_lines:
             continue
