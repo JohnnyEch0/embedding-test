@@ -66,8 +66,10 @@ class TestToJsonl:
         assert out.verses == src.verses
         assert out.poem == src.poem
         assert out.metadata.author == "Test Author"
+        assert out.metadata.title == "Test Poem"
         assert out.metadata.model == "fake-model"
         assert out.metadata.dimensions == 4
+        assert out.metadata.procedures == ["test"]
         assert out.metadata.schema_version == PoemEmbeddings.SCHEMA_VERSION
 
     def test_header_is_first_line_and_valid_json(self, tmp_path):
@@ -137,8 +139,10 @@ class TestToJson:
         assert out.verses == src.verses
         assert out.poem == src.poem
         assert out.metadata.author == "Test Author"
+        assert out.metadata.title == "Test Poem"
         assert out.metadata.model == "fake-model"
         assert out.metadata.dimensions == 4
+        assert out.metadata.procedures == ["test"]
         assert out.metadata.schema_version == PoemEmbeddings.SCHEMA_VERSION
 
     def test_single_file_all_levels_present(self, tmp_path):
