@@ -8,21 +8,18 @@ Protocol:
 
 ## Backlog
 
-- [5] Promote `tmp.py` to `scripts/inspect_poem_emb.py` — currently gitignored scratch; working, keep or kill.
-- [6] Working-tree loose ends: uncommitted `.gitignore` (tmp.py ignore), `README.md` edits, `gemma.py` deletion — decide keep/discard, then commit.
 - [7] Remove deprecated JSONL path entirely (`--jsonl` flag, `to_jsonl`/`from_jsonl`, JSONL tests) — requires [2] and [3] migrated first.
 - [8] Godot visualization upgrade: line-level star layout (PCA-2D or 3D slice of the 128-dim line embeddings) instead of word-level line-0-only.
 
 ## To Do
 
 - [1] Dim-hunt stage: dimension analysis (near-constant dims, redundant pairs, spread/offset ranking) over `PoemEmbeddings.load()` output — the unprocessed → analyzed pipeline step.
-- [2] Rebuild `dim_hunt_app.py` on the new format — currently stubbed (`DIM_OPTS`/`LINE_OPTS = []`), legacy `load_jsonl` commented out (`6d883c7`).
 - [3] Regenerate godot `data/sample*.json` from `poem_emb/eg2_d128_wild-geese_mary-oliver.json` (+ dim-analysis output); define godot schema together with `spheres.gd` migration (still reads legacy `embedding_dict`).
 - [4] Authorship metadata: `--author/--title` flags or per-poem manifest — headers currently carry `author: null`, `title` = filename stem.
 
 ## In Progress
 
-(none)
+- [2] Rebuild `dim_hunt_app.py` on the new format — merged with `dim_hunt_data.py`, JSONL load removed, crashes at startup by design (`0b67de5`); remaining: `PoemEmbeddings.load()`-based loader, token matrix, callbacks, `app.run()`.
 
 ## Done
 
