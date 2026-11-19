@@ -121,3 +121,29 @@ class TestFromJsonl:
                         '"model": "m", "dimensions": 4, "procedures": []}\n')
         with pytest.raises(LookupError):
             PoemEmbeddings.from_jsonl(path)
+
+
+class TestToJson:
+
+    def test_roundtrip(self, tmp_path):
+        src = make_instance()
+        path = tmp_path / "poem.json"
+        src.to_json(path)
+        out = PoemEmbeddings.from_json(path)
+        assert out.lines == src.lines
+        assert out.verses == src.verses
+        assert out.poem == src.poem
+        assert out.metadata.author == "Test Author"
+        assert out.metadata.model == "fake-model"
+        assert out.metadata.dimensions == 4
+        assert out.metadata.schema_version == PoemEmbeddings.SCHEMA_VERSION
+
+    def test_single_file_all_levels_present(self, tmp_path):
+        path = tmp_path / "poem.json"
+        make_instance().to_json(path)
+        data = json.loads(path.read_text(encoding="utf-8"))
+        assert set(data) == {"metadata", "lines", "verses", "poem"}
+        assert data["metadata"]["type"] == "Poem-Embeddings"
+        assert all("line_embedding" in l and "words" in l for l in data["lines"])
+        assert all("verse_embedding" in v for v in data["verses"])
+        assert "poem_embedding" in data["poem"]

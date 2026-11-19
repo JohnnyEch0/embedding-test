@@ -130,7 +130,11 @@ class LinewiseEmbeddingPerWord():
 class PoemEmbeddings():
     """One-file-per-poem store: word-, line-, verse- and poem-level embeddings.
 
-    File layout (JSONL):
+    Standard format (to_json/from_json): a single JSON file
+      {"metadata": {..., "type": "Poem-Embeddings"},
+       "lines": [...], "verses": [...], "poem": {...}}
+
+    Deprecated format (to_jsonl/from_jsonl): JSONL,
       line 1:     metadata header (type == "Poem-Embeddings")
       lines 2..:  one record per poem line, incl. words and line_embedding
       then:       one record per verse (verse_index, line_range, text, verse_embedding)
@@ -150,6 +154,7 @@ class PoemEmbeddings():
         self.poem: dict           # {text, poem_embedding}
 
     def to_jsonl(self, path) -> None:
+        """DEPRECATED: use to_json(). Kept behind a default-false flag."""
         header = self.metadata.to_dict()
         header["type"] = "Poem-Embeddings"
         with open(path, "w", encoding="utf-8") as f:
@@ -160,8 +165,33 @@ class PoemEmbeddings():
                 f.write(json.dumps(rec, ensure_ascii=False) + "\n")
             f.write(json.dumps({"poem": True, **self.poem}, ensure_ascii=False) + "\n")
 
+    def to_json(self, path) -> None:
+        """Write the standard single-JSON file."""
+        header = self.metadata.to_dict()
+        header["type"] = "Poem-Embeddings"
+        obj = {
+            "metadata": header,
+            "lines": self.lines,
+            "verses": self.verses,
+            "poem": self.poem,
+        }
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(obj, f, ensure_ascii=False, indent=2)
+            f.write("\n")
+
+    @classmethod
+    def from_json(cls, path):
+        obj = json.loads(Path(path).read_text(encoding="utf-8"))
+        instance = cls()
+        instance.metadata = Metadata.from_dict(obj["metadata"])
+        instance.lines = obj["lines"]
+        instance.verses = obj["verses"]
+        instance.poem = obj["poem"]
+        return instance
+
     @classmethod
     def from_jsonl(cls, path):
+        """DEPRECATED: use from_json()."""
         instance = cls()
         lines, verses, poem = [], [], None
         metadata = None
