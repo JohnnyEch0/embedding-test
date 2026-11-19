@@ -155,10 +155,10 @@ class TestPoemTexts:
         assert words == ["alpha", "beta", "gamma", "delta", "epsilon"]
         assert lines == ["alpha beta", "gamma", "delta epsilon"]
         assert len(verse_infos) == 2
-        # verbatim to_str() texts: trailing space per line, trailing newline per block
-        assert verse_infos[0] == ("alpha beta \ngamma \n", (0, 2))
-        assert verse_infos[1] == ("delta epsilon \n", (2, 3))
-        assert poem_text == "alpha beta \ngamma \n\ndelta epsilon \n\n"
+        # verse texts are newline-joined line blocks; poem joins verses with a blank line
+        assert verse_infos[0] == ("alpha beta\ngamma", (0, 2))
+        assert verse_infos[1] == ("delta epsilon", (2, 3))
+        assert poem_text == "alpha beta\ngamma\n\ndelta epsilon"
 
     def test_single_stanza(self, tmp_path):
         md = tmp_path / "t.md"
@@ -166,6 +166,13 @@ class TestPoemTexts:
         words, lines, verse_infos, poem_text = api_gemma.poem_texts(md)
         assert len(verse_infos) == 1
         assert verse_infos[0][1] == (0, 2)
+
+    def test_blank_blocks_skipped(self, tmp_path):
+        md = tmp_path / "t.md"
+        md.write_text("\n\none two\n\n\n")
+        words, lines, verse_infos, poem_text = api_gemma.poem_texts(md)
+        assert words == ["one", "two"]
+        assert len(verse_infos) == 1
 
 
 # --- embed_poem_file ---

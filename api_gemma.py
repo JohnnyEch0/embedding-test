@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from auth import client
-from data import Metadata, Poem, PoemEmbeddings, PoemEmb, LineEmb, VerseEmb, WordEmb
+from data import Metadata, PoemEmbeddings, PoemEmb, LineEmb, VerseEmb, WordEmb
 
 MODEL = "google/embeddinggemma-2"
 DIMS = 128
@@ -113,21 +113,25 @@ def poem_texts(
 ) -> tuple[list[str], list[str], list[tuple[str, tuple[int, int]]], str]:
     """Return (words, raw_lines, verse_infos, poem_text) for a .md poem file.
 
-    verse_infos: one (text, (line_start, line_end_exclusive)) per verse.
-    Verse/poem texts are the verbatim to_str() outputs (trailing
-    spaces/newlines included).
+    Verses are the file's blank-line-separated blocks; empty blocks skipped.
+    verse_infos: one (text, (line_start, line_end_exclusive)) per verse,
+    where text joins the verse's lines with "\n". poem_text joins the verse
+    texts with "\n\n".
     """
     p = Path(path)
-    poem = Poem.from_markdown(p)
-    words = [w for v in poem.verses for l in v.lines for w in l.words]
-    raw_lines = [ln for ln in p.read_text(encoding="utf-8").splitlines() if ln.strip()]
+    words: list[str] = []
+    raw_lines: list[str] = []
     verse_infos: list[tuple[str, tuple[int, int]]] = []
-    start = 0
-    for v in poem.verses:
-        n = len(v.lines)
-        verse_infos.append((v.to_str(), (start, start + n)))
-        start += n
-    return words, raw_lines, verse_infos, poem.to_str()
+    for block in p.read_text(encoding="utf-8").split("\n\n"):
+        block_lines = [ln for ln in block.splitlines() if ln.strip()]
+        if not block_lines:
+            continue
+        words.extend(w for ln in block_lines for w in ln.split())
+        start = len(raw_lines)
+        raw_lines.extend(block_lines)
+        verse_infos.append(("\n".join(block_lines), (start, len(raw_lines))))
+    poem_text = "\n\n".join(t for t, _ in verse_infos)
+    return words, raw_lines, verse_infos, poem_text
 
 
 def make_metadata(stem: str, model: str, dims: int) -> Metadata:

@@ -239,61 +239,6 @@ class PoemEmbeddings():
                 f"{len(self.lines)} lines, {len(self.verses)} verses)")
 
 
-class PoemLine():
-    def __init__(self, words:tuple[str, ...]) -> None:
-        self.words : tuple[str, ...] = words
-
-    def to_str(self)->str:
-        s = ""
-        for w in self.words:
-            s += w + " "
-
-        return s
-
-class PoemVerse():
-    def __init__(self,lines:tuple[PoemLine, ...]) -> None:
-        self.lines:tuple[PoemLine, ...]= lines
-
-    def to_str(self)->str:
-        s = ""
-        for l in self.lines:
-            s += l.to_str() + "\n"
-        return s
-
-class Poem():
-    def __init__(self) -> None:
-        self.verses:tuple[PoemVerse, ...]
-
-
-
-
-    @classmethod
-    def from_markdown(cls, path:Path):
-        blocks = path.read_text(encoding="utf-8").split("\n\n")# splitlines()
-        verses = []
-        for b in blocks:
-            # get lines
-            lines = tuple(PoemLine(tuple(l.split())) for l in b.splitlines())
-            verses.append(PoemVerse(lines))
-        p = Poem()
-        p.verses = tuple(v for v in verses)
-
-        return p
-
-    def to_str(self)->str:
-            s = ""
-            for v in self.verses:
-                s += v.to_str() + "\n"
-            return s
-
-    def print(self):
-        print(self.to_str())
-
-@dataclass(frozen=True)
-class Embedding():
-    def __init__(self) -> None:
-        self.string:str
-        self.values:tuple[float,...]
 
 if __name__ == "__main__":
     pass  # TODO(new-format): demo currently consumes the legacy per-word JSONL;
