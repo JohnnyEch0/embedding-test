@@ -1,0 +1,30 @@
+---
+title: "Sea Rose"
+author: "H.D."
+year: 1916
+form: "Imagist poem"
+period: "Imagism"
+themes: [flowers, harshness, the sea, sand, survival, exposure]
+origin: "United States / England"
+language: "English"
+public_domain: true
+---
+
+Rose, harsh rose,
+marred and with stint of petals,
+meagre flower, thin,
+sparse of leaf,
+more precious
+than a wet rose
+single on a stem—
+you are caught in the drift.
+
+Stunted, with small leaf,
+you are flung on the sand,
+you are lifted
+in the crisp sand
+that drives in the wind.
+
+Can the spice-rose
+drip such acrid fragrance
+hardened in a leaf?

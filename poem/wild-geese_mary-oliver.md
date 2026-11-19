@@ -1,3 +1,15 @@
+---
+title: "Wild Geese"
+author: "Mary Oliver"
+year: 1986
+form: "free verse"
+period: "Contemporary American"
+themes: [belonging, nature, self-acceptance, solitude, healing]
+origin: "United States"
+language: "English"
+public_domain: false
+---
+
 You do not have to be good.
 You do not have to walk on your knees
 for a hundred miles through the desert repenting.
