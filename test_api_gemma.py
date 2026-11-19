@@ -172,33 +172,42 @@ class TestPoemTexts:
 
 class TestEmbedPoemFile:
 
-    def test_end_to_end(self, tmp_path):
+    def test_end_to_end_writes_json_by_default(self, tmp_path):
         md = tmp_path / "in" / "test.md"
         md.parent.mkdir()
         md.write_text("hello world\nfoo bar\n\nbaz qux\n")
         out = tmp_path / "out"
         out.mkdir()
         result = api_gemma.embed_poem_file(md, any_fake_client(), "fake-model", 64, 4, out)
-        assert result == out / "eg2_d64_test.jsonl"
-        recs = [json.loads(ln) for ln in result.read_text().splitlines() if ln.strip()]
-        header = recs[0]
-        assert header["type"] == "Poem-Embeddings"
-        assert header["schema_version"] == 1
-        assert header["dimensions"] == 64
-        line_recs = [r for r in recs if "line_index" in r]
-        assert len(line_recs) == 3
-        for r in line_recs:
+        assert result == out / "eg2_d64_test.json"
+        data = json.loads(result.read_text())
+        assert set(data) == {"metadata", "lines", "verses", "poem"}
+        assert data["metadata"]["type"] == "Poem-Embeddings"
+        assert data["metadata"]["schema_version"] == 1
+        assert data["metadata"]["dimensions"] == 64
+        assert len(data["lines"]) == 3
+        for r in data["lines"]:
             assert len(r["line_embedding"]) == 64
             for w in r["words"]:
                 assert len(w["embedding"]) == 64
-        verse_recs = [r for r in recs if "verse_index" in r]
-        assert [v["line_range"] for v in verse_recs] == [[0, 2], [2, 3]]
-        for v in verse_recs:
+        assert [v["line_range"] for v in data["verses"]] == [[0, 2], [2, 3]]
+        for v in data["verses"]:
             assert len(v["verse_embedding"]) == 64
-        poem_recs = [r for r in recs if "poem" in r]
-        assert len(poem_recs) == 1
-        assert poem_recs[0]["poem"] is True
-        assert len(poem_recs[0]["poem_embedding"]) == 64
+        assert len(data["poem"]["poem_embedding"]) == 64
+
+    def test_jsonl_flag_writes_deprecated_format(self, tmp_path):
+        md = tmp_path / "in" / "test.md"
+        md.parent.mkdir()
+        md.write_text("hello world\nfoo bar\n")
+        out = tmp_path / "out"
+        out.mkdir()
+        result = api_gemma.embed_poem_file(md, any_fake_client(), "fake-model", 64, 4, out,
+                                           jsonl=True)
+        assert result == out / "eg2_d64_test.jsonl"
+        recs = [json.loads(ln) for ln in result.read_text().splitlines() if ln.strip()]
+        assert recs[0]["type"] == "Poem-Embeddings"  # header first
+        assert sum("line_index" in r for r in recs) == 2
+        assert sum("poem" in r for r in recs) == 1
 
     def test_empty_md_returns_none(self, tmp_path):
         md = tmp_path / "in" / "empty.md"
@@ -290,15 +299,24 @@ class TestMain:
         (tmp_path / "in").mkdir()
         (tmp_path / "in" / "test.md").write_text("hello world\nfoo bar\n")
         api_gemma.main(["--dims", "64", str(tmp_path / "in"), str(tmp_path / "out")])
+        files = list((tmp_path / "out").glob("eg2_d64_*.json"))
+        assert len(files) == 1
+        data = json.loads(files[0].read_text())
+        assert len(data["lines"]) == 2  # test.md has 2 lines
+        assert len(data["lines"][0]["words"]) == 2  # line 1: hello world
+        assert all(len(e) == 64 for e in [w["embedding"] for w in data["lines"][0]["words"]])
+        assert len(data["verses"]) == 1
+        assert "poem_embedding" in data["poem"]
+
+    def test_jsonl_flag(self, tmp_path, monkeypatch):
+        fake = any_fake_client()
+        monkeypatch.setattr(api_gemma, "client", fake)
+        (tmp_path / "in").mkdir()
+        (tmp_path / "in" / "test.md").write_text("hello world\nfoo bar\n")
+        api_gemma.main(["--dims", "64", "--jsonl", str(tmp_path / "in"), str(tmp_path / "out")])
         files = list((tmp_path / "out").glob("eg2_d64_*.jsonl"))
         assert len(files) == 1
-        recs = [json.loads(ln) for ln in files[0].read_text().splitlines() if ln.strip()]
-        line_recs = [r for r in recs if "line_index" in r]
-        assert len(line_recs) == 2  # test.md has 2 lines
-        assert len(line_recs[0]["words"]) == 2  # line 1: hello world
-        assert all(len(e) == 64 for e in [w["embedding"] for w in line_recs[0]["words"]])
-        assert len([r for r in recs if "verse_index" in r]) == 1
-        assert len([r for r in recs if "poem" in r]) == 1
+        assert not list((tmp_path / "out").glob("eg2_d64_*.json"))
 
     def test_non_md_ignored(self, tmp_path, fake_client, monkeypatch):
         monkeypatch.setattr(api_gemma, "client", fake_client)

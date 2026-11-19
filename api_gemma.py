@@ -31,6 +31,8 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
                   help="Embedding dimensions (default: %(default)s)")
     p.add_argument("--batch", type=int, default=BATCH,
                   help="Words per API call (default: %(default)s)")
+    p.add_argument("--jsonl", action="store_true",
+                  help="DEPRECATED: write JSONL instead of the default single JSON file")
     return p.parse_args(argv)
 
 
@@ -146,8 +148,13 @@ def embed_poem_file(
     dims: int,
     batch: int,
     out_dir: str | Path,
+    jsonl: bool = False,
 ) -> Path | None:
-    """Embed one poem at word/line/verse/poem levels, write JSONL, return path."""
+    """Embed one poem at word/line/verse/poem levels, write it, return path.
+
+    Writes a single JSON file by default; jsonl=True keeps the deprecated
+    JSONL format.
+    """
     path = Path(path)
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -197,8 +204,12 @@ def embed_poem_file(
     pe.verses = verse_records
     pe.poem = {"text": poem_text, "poem_embedding": poem_vec}
 
-    out_path = out_dir / f"eg2_d{dims}_{path.stem}.jsonl"
-    pe.to_jsonl(out_path)
+    out_suffix = ".jsonl" if jsonl else ".json"
+    out_path = out_dir / f"eg2_d{dims}_{path.stem}{out_suffix}"
+    if jsonl:
+        pe.to_jsonl(out_path)  # deprecated format, kept behind the jsonl flag
+    else:
+        pe.to_json(out_path)
     return out_path
 
 
@@ -233,7 +244,8 @@ def main(argv: Sequence[str] | None = None) -> None:
     args = parse_args(argv)
     os.makedirs(args.output, exist_ok=True)
     for path in iter_md_files(args.input):
-        summary = embed_poem_file(path, client, args.model, args.dims, args.batch, args.output)
+        summary = embed_poem_file(path, client, args.model, args.dims, args.batch,
+                                  args.output, jsonl=args.jsonl)
         if summary:
             print(f"{os.path.basename(path)} -> {summary}")
 
