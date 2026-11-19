@@ -146,11 +146,32 @@ def poem_texts(
     return words, raw_lines, verse_infos, poem_text
 
 
-def make_metadata(stem: str, model: str, dims: int) -> Metadata:
+def parse_frontmatter(text: str) -> dict:
+    """Parse YAML frontmatter into a dict; {} if absent or malformed."""
+    if not text.startswith("---"):
+        return {}
+    lines = text.splitlines()
+    for i in range(1, len(lines)):
+        if lines[i].strip() == "---":
+            fm_lines = lines[1:i]
+            result = {}
+            for line in fm_lines:
+                if ":" in line:
+                    key, _, value = line.partition(":")
+                    key = key.strip()
+                    value = value.strip()
+                    if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+                        value = value[1:-1]
+                    result[key] = value
+            return result
+    return {}
+
+
+def make_metadata(author: str, title: str, model: str, dims: int) -> Metadata:
     m = Metadata()
     m.schema_version = PoemEmbeddings.SCHEMA_VERSION
-    m.author = None
-    m.title = stem
+    m.author = author
+    m.title = title
     m.model = model
     m.dimensions = dims
     m.procedures = [f"api-embedding:{model}"]
@@ -215,7 +236,8 @@ def embed_poem_file(
     ) for i, ((t, (s, e)), v) in enumerate(zip(verse_infos, verse_vecs))]
 
     pe = PoemEmbeddings()
-    pe.metadata = make_metadata(path.stem, model, dims)
+    fm = parse_frontmatter(path.read_text(encoding="utf-8"))
+    pe.metadata = make_metadata(fm.get("author"), fm.get("title"), model, dims)
     pe.lines = line_records
     pe.verses = verse_records
     pe.poem = PoemEmb(text=poem_text, poem_embedding=poem_vec)

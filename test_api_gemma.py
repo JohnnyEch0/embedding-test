@@ -165,6 +165,48 @@ class TestStripFrontmatter:
         assert api_gemma.strip_frontmatter(text) == "Body"
 
 
+# --- parse_frontmatter ---
+
+class TestParseFrontmatter:
+
+    def test_parses_quoted_values(self):
+        text = '---\ntitle: "Wild Geese"\nauthor: "Mary Oliver"\n---\n\nBody.'
+        fm = api_gemma.parse_frontmatter(text)
+        assert fm == {"title": "Wild Geese", "author": "Mary Oliver"}
+
+    def test_parses_unquoted_values(self):
+        text = "---\ntitle: Wild Geese\nauthor: Mary Oliver\n---\n\nBody."
+        fm = api_gemma.parse_frontmatter(text)
+        assert fm == {"title": "Wild Geese", "author": "Mary Oliver"}
+
+    def test_no_frontmatter(self):
+        text = "Just a poem."
+        assert api_gemma.parse_frontmatter(text) == {}
+
+    def test_malformed_frontmatter(self):
+        text = "---\ntitle: Test\nNo closing"
+        assert api_gemma.parse_frontmatter(text) == {}
+
+    def test_extra_fields_ignored(self):
+        text = "---\ntitle: X\nauthor: Y\nyear: 1986\n---\n\nBody."
+        fm = api_gemma.parse_frontmatter(text)
+        assert len(fm) == 3
+
+
+# --- make_metadata ---
+
+class TestMakeMetadata:
+
+    def test_author_title_from_frontmatter(self):
+        m = api_gemma.make_metadata("Mary Oliver", "Wild Geese", "model", 128)
+        assert m.author == "Mary Oliver"
+        assert m.title == "Wild Geese"
+
+    def test_author_none_when_missing(self):
+        m = api_gemma.make_metadata(None, "Wild Geese", "model", 128)
+        assert m.author is None
+
+
 # --- poem_texts ---
 
 class TestPoemTexts:
@@ -186,7 +228,21 @@ class TestPoemTexts:
         assert raw_lines == ["alpha beta", "gamma"]
         assert len(verse_infos) == 1
 
-    def test_two_stanzas(self, tmp_path):
+    def test_frontmatter_author_title_extracted(self, tmp_path):
+        """embed_poem_file must pull author/title from frontmatter into metadata."""
+        md = tmp_path / "t.md"
+        md.write_text(
+            "---\n"
+            "title: Wild Geese\n"
+            "author: Mary Oliver\n"
+            "---\n"
+            "\n"
+            "alpha beta\n"
+            "gamma\n"
+        )
+        fm = api_gemma.parse_frontmatter(md.read_text(encoding="utf-8"))
+        assert fm["title"] == "Wild Geese"
+        assert fm["author"] == "Mary Oliver"
         md = tmp_path / "t.md"
         md.write_text("alpha beta\ngamma\n\ndelta epsilon\n")
         words, lines, verse_infos, poem_text = api_gemma.poem_texts(md)
@@ -216,6 +272,25 @@ class TestPoemTexts:
 # --- embed_poem_file ---
 
 class TestEmbedPoemFile:
+
+    def test_metadata_author_title_from_frontmatter(self, tmp_path):
+        """metadata.author/title must come from frontmatter, not filename."""
+        md = tmp_path / "in" / "wild-geese_mary-oliver.md"
+        md.parent.mkdir()
+        md.write_text(
+            "---\n"
+            "title: \"Wild Geese\"\n"
+            "author: \"Mary Oliver\"\n"
+            "---\n"
+            "\n"
+            "You do not have to be good.\n"
+        )
+        out = tmp_path / "out"
+        out.mkdir()
+        result = api_gemma.embed_poem_file(md, any_fake_client(), "fake-model", 64, 4, out)
+        data = json.loads(result.read_text())
+        assert data["metadata"]["author"] == "Mary Oliver"
+        assert data["metadata"]["title"] == "Wild Geese"
 
     def test_end_to_end_writes_json_by_default(self, tmp_path):
         md = tmp_path / "in" / "test.md"
