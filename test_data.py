@@ -1,9 +1,12 @@
 """Tests for PoemEmbeddings (one-file-per-poem store) in data.py."""
 import json
+from pathlib import Path
 
 import pytest
 
-from data import Metadata, PoemEmbeddings
+from data import (Metadata, PoemEmbeddings, WordEmb, LineEmb, VerseEmb, PoemEmb)
+
+REPO = Path(__file__).parent
 
 
 def make_metadata():
@@ -21,34 +24,34 @@ def make_instance():
     pe = PoemEmbeddings()
     pe.metadata = make_metadata()
     pe.lines = [
-        {
-            "line_index": 0,
-            "line": "hello world",
-            "words": [
-                {"word": "hello", "embedding": [0.1, 0.2, 0.3, 0.4]},
-                {"word": "world", "embedding": [0.5, 0.6, 0.7, 0.8]},
+        LineEmb(
+            line_index=0,
+            line="hello world",
+            words=[
+                WordEmb("hello", [0.1, 0.2, 0.3, 0.4]),
+                WordEmb("world", [0.5, 0.6, 0.7, 0.8]),
             ],
-            "line_embedding": [1.0, 1.1, 1.2, 1.3],
-        },
-        {
-            "line_index": 1,
-            "line": "foo bar",
-            "words": [{"word": "foo", "embedding": [0.9, 0.9, 0.9, 0.9]}],
-            "line_embedding": [2.0, 2.1, 2.2, 2.3],
-        },
+            line_embedding=[1.0, 1.1, 1.2, 1.3],
+        ),
+        LineEmb(
+            line_index=1,
+            line="foo bar",
+            words=[WordEmb("foo", [0.9, 0.9, 0.9, 0.9])],
+            line_embedding=[2.0, 2.1, 2.2, 2.3],
+        ),
     ]
     pe.verses = [
-        {
-            "verse_index": 0,
-            "line_range": [0, 2],
-            "text": "hello world\nfoo bar\n",
-            "verse_embedding": [3.0, 3.1, 3.2, 3.3],
-        },
+        VerseEmb(
+            verse_index=0,
+            line_range=(0, 2),
+            text="hello world\nfoo bar\n",
+            verse_embedding=[3.0, 3.1, 3.2, 3.3],
+        ),
     ]
-    pe.poem = {
-        "text": "hello world\nfoo bar\n",
-        "poem_embedding": [4.0, 4.1, 4.2, 4.3],
-    }
+    pe.poem = PoemEmb(
+        text="hello world\nfoo bar\n",
+        poem_embedding=[4.0, 4.1, 4.2, 4.3],
+    )
     return pe
 
 
@@ -147,3 +150,72 @@ class TestToJson:
         assert all("line_embedding" in l and "words" in l for l in data["lines"])
         assert all("verse_embedding" in v for v in data["verses"])
         assert "poem_embedding" in data["poem"]
+
+
+class TestDataclasses:
+
+    def test_word_roundtrip_and_key_order(self):
+        w = WordEmb("you", [0.1, 0.2])
+        d = w.to_dict()
+        assert list(d) == ["word", "embedding"]
+        assert WordEmb.from_dict(d) == w
+
+    def test_line_roundtrip_and_key_order(self):
+        l = make_instance().lines[0]
+        assert list(l.to_dict()) == ["line_index", "line", "words", "line_embedding"]
+        assert LineEmb.from_dict(l.to_dict()) == l
+
+    def test_verse_roundtrip_and_key_order(self):
+        v = make_instance().verses[0]
+        d = v.to_dict()
+        assert list(d) == ["verse_index", "line_range", "text", "verse_embedding"]
+        out = VerseEmb.from_dict(d)
+        assert out == v
+        assert out.line_range == (0, 2)
+
+    def test_poem_roundtrip_and_key_order(self):
+        p = make_instance().poem
+        assert list(p.to_dict()) == ["text", "poem_embedding"]
+        assert PoemEmb.from_dict(p.to_dict()) == p
+
+
+class TestLoadSave:
+
+    def test_save_load_json_roundtrip(self, tmp_path):
+        src = make_instance()
+        path = tmp_path / "poem.json"
+        src.save(path)
+        out = PoemEmbeddings.load(path)
+        assert out.lines == src.lines
+        assert out.verses == src.verses
+        assert out.poem == src.poem
+
+    def test_save_load_jsonl_roundtrip(self, tmp_path):
+        src = make_instance()
+        path = tmp_path / "poem.jsonl"
+        src.save(path)
+        out = PoemEmbeddings.load(path)
+        assert out.lines == src.lines
+        assert out.verses == src.verses
+        assert out.poem == src.poem
+
+    def test_unknown_extension_raises(self, tmp_path):
+        p = tmp_path / "poem.txt"
+        p.write_text("{}")
+        with pytest.raises(ValueError):
+            PoemEmbeddings.load(p)
+        with pytest.raises(ValueError):
+            make_instance().save(p)
+
+
+class TestWildGeeseCompatibility:
+    """The standard format must stay byte-compatible with the committed data."""
+
+    def test_save_matches_committed_json(self, tmp_path):
+        src = REPO / "poem_emb" / "eg2_d128_wild-geese_mary-oliver.jsonl"
+        committed = REPO / "poem_emb" / "eg2_d128_wild-geese_mary-oliver.json"
+        if not src.exists() or not committed.exists():
+            pytest.skip("repo data files not present")
+        out = tmp_path / "out.json"
+        PoemEmbeddings.load(src).save(out)
+        assert out.read_bytes() == committed.read_bytes()

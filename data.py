@@ -6,6 +6,86 @@ import json
 from dataclasses import dataclass
 import numpy as np
 from pathlib import Path
+
+
+@dataclass
+class WordEmb:
+    """One word with its embedding. Dict key order is the on-disk contract."""
+    word: str
+    embedding: list[float]
+
+    def to_dict(self) -> dict:
+        return {"word": self.word, "embedding": self.embedding}
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "WordEmb":
+        return cls(word=d["word"], embedding=d["embedding"])
+
+
+@dataclass
+class LineEmb:
+    """One poem line: words with embeddings, plus the whole-line embedding."""
+    line_index: int
+    line: str
+    words: list[WordEmb]
+    line_embedding: list[float]
+
+    def to_dict(self) -> dict:
+        return {
+            "line_index": self.line_index,
+            "line": self.line,
+            "words": [w.to_dict() for w in self.words],
+            "line_embedding": self.line_embedding,
+        }
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "LineEmb":
+        return cls(
+            line_index=d["line_index"],
+            line=d["line"],
+            words=[WordEmb.from_dict(w) for w in d["words"]],
+            line_embedding=d["line_embedding"],
+        )
+
+
+@dataclass
+class VerseEmb:
+    """One verse with its text and whole-verse embedding."""
+    verse_index: int
+    line_range: tuple[int, int]  # [start, end) into the poem's lines
+    text: str
+    verse_embedding: list[float]
+
+    def to_dict(self) -> dict:
+        return {
+            "verse_index": self.verse_index,
+            "line_range": list(self.line_range),
+            "text": self.text,
+            "verse_embedding": self.verse_embedding,
+        }
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "VerseEmb":
+        return cls(
+            verse_index=d["verse_index"],
+            line_range=tuple(d["line_range"]),
+            text=d["text"],
+            verse_embedding=d["verse_embedding"],
+        )
+
+
+@dataclass
+class PoemEmb:
+    """The whole poem with its text and embedding."""
+    text: str
+    poem_embedding: list[float]
+
+    def to_dict(self) -> dict:
+        return {"text": self.text, "poem_embedding": self.poem_embedding}
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "PoemEmb":
+        return cls(text=d["text"], poem_embedding=d["poem_embedding"])
 class Metadata():
     def __init__(self) -> None:
         self.schema_version:int
@@ -130,11 +210,11 @@ class LinewiseEmbeddingPerWord():
 class PoemEmbeddings():
     """One-file-per-poem store: word-, line-, verse- and poem-level embeddings.
 
-    Standard format (to_json/from_json): a single JSON file
+    Standard format (save/load with .json): a single JSON file
       {"metadata": {..., "type": "Poem-Embeddings"},
        "lines": [...], "verses": [...], "poem": {...}}
 
-    Deprecated format (to_jsonl/from_jsonl): JSONL,
+    Deprecated format (save/load with .jsonl): JSONL,
       line 1:     metadata header (type == "Poem-Embeddings")
       lines 2..:  one record per poem line, incl. words and line_embedding
       then:       one record per verse (verse_index, line_range, text, verse_embedding)
@@ -149,34 +229,49 @@ class PoemEmbeddings():
 
     def __init__(self) -> None:
         self.metadata: Metadata
-        self.lines: list[dict]    # {line_index, line, words: [{word, embedding}], line_embedding}
-        self.verses: list[dict]   # {verse_index, line_range: [start, end], text, verse_embedding}
-        self.poem: dict           # {text, poem_embedding}
+        self.lines: list[LineEmb]
+        self.verses: list[VerseEmb]
+        self.poem: PoemEmb
 
-    def to_jsonl(self, path) -> None:
-        """DEPRECATED: use to_json(). Kept behind a default-false flag."""
+    # --- standard interface: format chosen by file suffix -------------------
+
+    def save(self, path) -> None:
+        """Write to path; .json (standard) or .jsonl (deprecated) by suffix."""
+        suffix = Path(path).suffix
+        if suffix == ".json":
+            self.to_json(path)
+        elif suffix == ".jsonl":
+            self.to_jsonl(path)
+        else:
+            raise ValueError(f"unsupported embedding file extension: {suffix!r}")
+
+    @classmethod
+    def load(cls, path) -> "PoemEmbeddings":
+        """Read from path; .json (standard) or .jsonl (deprecated) by suffix."""
+        suffix = Path(path).suffix
+        if suffix == ".json":
+            return cls.from_json(path)
+        elif suffix == ".jsonl":
+            return cls.from_jsonl(path)
+        else:
+            raise ValueError(f"unsupported embedding file extension: {suffix!r}")
+
+    # --- json (standard) ----------------------------------------------------
+
+    def to_dict(self) -> dict:
         header = self.metadata.to_dict()
         header["type"] = "Poem-Embeddings"
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(json.dumps(header, ensure_ascii=False) + "\n")
-            for rec in self.lines:
-                f.write(json.dumps(rec, ensure_ascii=False) + "\n")
-            for rec in self.verses:
-                f.write(json.dumps(rec, ensure_ascii=False) + "\n")
-            f.write(json.dumps({"poem": True, **self.poem}, ensure_ascii=False) + "\n")
+        return {
+            "metadata": header,
+            "lines": [l.to_dict() for l in self.lines],
+            "verses": [v.to_dict() for v in self.verses],
+            "poem": self.poem.to_dict(),
+        }
 
     def to_json(self, path) -> None:
         """Write the standard single-JSON file."""
-        header = self.metadata.to_dict()
-        header["type"] = "Poem-Embeddings"
-        obj = {
-            "metadata": header,
-            "lines": self.lines,
-            "verses": self.verses,
-            "poem": self.poem,
-        }
         with open(path, "w", encoding="utf-8") as f:
-            json.dump(obj, f, ensure_ascii=False, indent=2)
+            json.dump(self.to_dict(), f, ensure_ascii=False, indent=2)
             f.write("\n")
 
     @classmethod
@@ -184,14 +279,26 @@ class PoemEmbeddings():
         obj = json.loads(Path(path).read_text(encoding="utf-8"))
         instance = cls()
         instance.metadata = Metadata.from_dict(obj["metadata"])
-        instance.lines = obj["lines"]
-        instance.verses = obj["verses"]
-        instance.poem = obj["poem"]
+        instance.lines = [LineEmb.from_dict(l) for l in obj["lines"]]
+        instance.verses = [VerseEmb.from_dict(v) for v in obj["verses"]]
+        instance.poem = PoemEmb.from_dict(obj["poem"])
         return instance
+
+    # --- jsonl (deprecated) --------------------------------------------------
+
+    def to_jsonl(self, path) -> None:
+        """DEPRECATED: use save() with a .json path."""
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(json.dumps(self.to_dict()["metadata"], ensure_ascii=False) + "\n")
+            for rec in self.lines:
+                f.write(json.dumps(rec.to_dict(), ensure_ascii=False) + "\n")
+            for rec in self.verses:
+                f.write(json.dumps(rec.to_dict(), ensure_ascii=False) + "\n")
+            f.write(json.dumps({"poem": True, **self.poem.to_dict()}, ensure_ascii=False) + "\n")
 
     @classmethod
     def from_jsonl(cls, path):
-        """DEPRECATED: use from_json()."""
+        """DEPRECATED: use load() with a .json path."""
         instance = cls()
         lines, verses, poem = [], [], None
         metadata = None
@@ -204,11 +311,11 @@ class PoemEmbeddings():
                 if "schema_version" in obj:
                     metadata = Metadata.from_dict(obj)
                 elif "line_index" in obj:
-                    lines.append(obj)
+                    lines.append(LineEmb.from_dict(obj))
                 elif "verse_index" in obj:
-                    verses.append(obj)
+                    verses.append(VerseEmb.from_dict(obj))
                 elif "poem" in obj:
-                    poem = obj
+                    poem = PoemEmb.from_dict(obj)
         if metadata is None:
             raise LookupError("Couldn't find metadata header in jsonl.")
         if poem is None:
@@ -216,7 +323,7 @@ class PoemEmbeddings():
         instance.metadata = metadata
         instance.lines = lines
         instance.verses = verses
-        instance.poem = {"text": poem["text"], "poem_embedding": poem["poem_embedding"]}
+        instance.poem = poem
         return instance
 
     def __repr__(self) -> str:
