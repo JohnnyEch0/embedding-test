@@ -87,7 +87,7 @@ class PoemEmb:
 class Metadata():
     def __init__(self) -> None:
         self.schema_version:int
-        self.author:str
+        self.author:str | None
         self.title:str
         self.model:str
         self.dimensions:int
@@ -193,10 +193,10 @@ class PoemEmbeddings():
         """DEPRECATED: use save() with a .json path."""
         with open(path, "w", encoding="utf-8") as f:
             f.write(json.dumps(self.to_dict()["metadata"], ensure_ascii=False) + "\n")
-            for rec in self.lines:
-                f.write(json.dumps(rec.to_dict(), ensure_ascii=False) + "\n")
-            for rec in self.verses:
-                f.write(json.dumps(rec.to_dict(), ensure_ascii=False) + "\n")
+            for line_rec in self.lines:
+                f.write(json.dumps(line_rec.to_dict(), ensure_ascii=False) + "\n")
+            for verse_rec in self.verses:
+                f.write(json.dumps(verse_rec.to_dict(), ensure_ascii=False) + "\n")
             f.write(json.dumps({"poem": True, **self.poem.to_dict()}, ensure_ascii=False) + "\n")
 
     @classmethod
