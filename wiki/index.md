@@ -5,6 +5,7 @@ Entry point for the local Open Knowledge bundle for the EmbVis (Embedding Visual
 ## Start Here
 
 - [Architecture Overview](overview.md) — high-level architecture, data flow, and core components
+- [JSON Data Format](data-format.md) — schema of the embedding JSON files in godot/data/
 - [Changelog](changelog.md) — notable changes, newest first
 - [Decisions](decisions/index.md) — architecture decision records (ADR-style)
 
