@@ -2,68 +2,71 @@ extends Node3D
 
 const STAR_SCENE = preload("res://emb_star.tscn")
 
-
-const POSITIONS: Array[Vector3] = [
-	Vector3(0, 0, -5),
-	Vector3(3, 1, -8),
-	Vector3(-2, -1, -12),
-]
-
+const SCALE := 1000
+var datapath := "res://data/sample.json"
 var stars: Array[EmbStar] = []
 
 
 @export var radius: float = 0.5
-
-func _ready() -> void:
+@export var show_lines := false
+func _read_json() -> Variant:
 	var json = JSON.new()
-	var file = FileAccess.open("res://data/sample.json", FileAccess.READ)
+	var file = FileAccess.open(datapath, FileAccess.READ)
 	if file == null:
 		print("File error: ", )
 	var error = json.parse(file.get_as_text())
-	var star_data: Array[EmbStarData] = []
 	if error == OK:
-		var data = json.data	
-		var first_line:String = data["lines"][0]
-		print(first_line)
-		var emb_dict = data["embedding_dict"]
+		var data = json.data
+		return data
+	else:
+		push_error("JSON Parse Error: ", json.get_error_message(), json.get_error_line())
+		return error
 		
-		for word in first_line.split(" "):
-			var single_star_data = EmbStarData.new()
-			var emb = emb_dict[word].slice(0,3)
-			# print(word, emb)
-			single_star_data.label = word
-			single_star_data.spawn_pos = Vector3(emb[0] * 1000, emb[1] * 1000, emb[2] * 1000)
-			star_data.append(single_star_data)
-	else: 
-		print("JSON Parse Error: ", json.get_error_message(), json.get_error_line())
 
-	
+func _ready() -> void:
+	var data = _read_json()
+	var star_data: Array[EmbStarData] = []
+	var first_line: String = data["lines"][0]
+	var emb_dict = data["embedding_dict"]
+
+	for word in first_line.split(" "):
+		var single_star_data = EmbStarData.new()
+		var emb = emb_dict[word].slice(0, 3)
+		# print(word, emb)
+		single_star_data.label = word
+		single_star_data.spawn_pos = Vector3(emb[0] * SCALE, emb[1] * SCALE, emb[2] * SCALE)
+		star_data.append(single_star_data)
+
+
+	var pairs: Array = []
+	var prev: MeshInstance3D = null
 	for sd in star_data:
 		var inst: MeshInstance3D = STAR_SCENE.instantiate()
 		inst.data = sd
 		inst.position = sd.spawn_pos
-		
+
 		add_child(inst)
 		stars.append(inst)
-		print("Star created at %s", inst.position)
-		print("Star created at %s", inst.mesh)
-	
-	
+		if prev: pairs.append([prev, inst])
+		prev = inst
 
-func _depr_spawn():
-	var mesh := SphereMesh.new()
-	mesh.radius = radius
-	mesh.height = radius * 2.0
+		#print("Star created at %s", inst.position)
+		#print("Star created at %s", inst.mesh)
 
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color.WHITE
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.emission_enabled = true
-	mat.emission = Color.WHITE
-	mesh.material = mat
+	if show_lines:
+		draw_lines(pairs)
 
-	for p in POSITIONS:
-		var mi := MeshInstance3D.new()
-		mi.mesh = mesh          # shared resource, cheap
-		mi.position = p
-		add_child(mi)
+
+func draw_lines(pairs: Array):
+	var verts := PackedVector3Array()
+	for p in pairs:
+		verts.append(p[0].position)
+		verts.append(p[1].position)
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = verts
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_LINES, arrays)
+	var line_inst := MeshInstance3D.new()
+	line_inst.mesh = mesh
+	add_child(line_inst)

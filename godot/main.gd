@@ -1,9 +1,9 @@
 extends Node3D
-var stars_node 
+@onready var stars_node = $"Spheres"
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	stars_node = $"Spheres"
+	#stars_node = $"Spheres"
 	pass # Replace with function body.
 
 
