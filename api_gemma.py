@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from auth import client
-from data import Metadata, Poem, PoemEmbeddings
+from data import Metadata, Poem, PoemEmbeddings, PoemEmb, LineEmb, VerseEmb, WordEmb
 
 MODEL = "google/embeddinggemma-2"
 DIMS = 128
@@ -179,37 +179,34 @@ def embed_poem_file(
     pos = 0
     for i, line in enumerate(raw_lines):
         ws = line.split()
-        rec_words = [{"word": w, "embedding": v}
+        rec_words = [WordEmb(w, v)
                      for w, v in zip(ws, word_vecs[pos:pos + len(ws)])]
         pos += len(ws)
-        line_records.append({
-            "line_index": i,
-            "line": line,
-            "words": rec_words,
-            "line_embedding": line_vecs[i],
-        })
+        line_records.append(LineEmb(
+            line_index=i,
+            line=line,
+            words=rec_words,
+            line_embedding=line_vecs[i],
+        ))
     if pos != n_words:
         raise ValueError(f"word split mismatch: {pos} vs {n_words}")
 
-    verse_records = [{
-        "verse_index": i,
-        "line_range": [s, e],
-        "text": t,
-        "verse_embedding": v,
-    } for i, ((t, (s, e)), v) in enumerate(zip(verse_infos, verse_vecs))]
+    verse_records = [VerseEmb(
+        verse_index=i,
+        line_range=(s, e),
+        text=t,
+        verse_embedding=v,
+    ) for i, ((t, (s, e)), v) in enumerate(zip(verse_infos, verse_vecs))]
 
     pe = PoemEmbeddings()
     pe.metadata = make_metadata(path.stem, model, dims)
     pe.lines = line_records
     pe.verses = verse_records
-    pe.poem = {"text": poem_text, "poem_embedding": poem_vec}
+    pe.poem = PoemEmb(text=poem_text, poem_embedding=poem_vec)
 
     out_suffix = ".jsonl" if jsonl else ".json"
     out_path = out_dir / f"eg2_d{dims}_{path.stem}{out_suffix}"
-    if jsonl:
-        pe.to_jsonl(out_path)  # deprecated format, kept behind the jsonl flag
-    else:
-        pe.to_json(out_path)
+    pe.save(out_path)  # .json standard; .jsonl deprecated, kept behind the flag
     return out_path
 
 
