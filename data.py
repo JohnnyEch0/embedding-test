@@ -281,14 +281,15 @@ class Embedding():
         self.values:tuple[float,...]
 
 if __name__ == "__main__":
-
-    p = Path("poem/wild-geese_mary-oliver.md")
-    poem = Poem.from_markdown(p)
-    poem.print()
-
-    print(len(poem.verses))
-
-    instance = LinewiseEmbeddingPerWord.from_jsonl("poem_emb/linewise_emb-per-word/eg2_d128_wild-geese_mary-oliver.jsonl")
+    pass  # TODO(new-format): demo currently consumes the legacy per-word JSONL;
+    # rewrite against PoemEmbeddings.load() once the typed refactor lands.
+    # p = Path("poem/wild-geese_mary-oliver.md")
+    # poem = Poem.from_markdown(p)
+    # poem.print()
+    #
+    # print(len(poem.verses))
+    #
+    # instance = LinewiseEmbeddingPerWord.from_jsonl("poem_emb/linewise_emb-per-word/eg2_d128_wild-geese_mary-oliver.jsonl")
     # instance.to_json()
     # instance.print_embeddings()
     # for k,v in instance.emb_dict.items():

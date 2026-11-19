@@ -13,18 +13,17 @@ from dim_hunt_data import (
     compute_pca,
 )
 
-PATH = sys.argv[1] if len(sys.argv) > 1 else "poem.jsonl"
-
-DF_FULL, X_FULL = load_jsonl(PATH)
-N_DIMS = X_FULL.shape[1]
-print(f"[info] {len(DF_FULL)} tokens, {N_DIMS} dims, "
-      f"{DF_FULL['line_index'].nunique()} lines")
-
-DIM_OPTS = [{"label": f"dim {i}", "value": i} for i in range(N_DIMS)]
-LINE_OPTS = [{"label": "— entire poem —", "value": -1}] + [
-    {"label": f"{i}: {t[:45]}", "value": int(i)}
-    for i, t in DF_FULL.drop_duplicates("line_index")[["line_index", "line"]].values
-]
+# TODO(new-format): consume via PoemEmbeddings.load() (standard single JSON);
+# rebuild dim-hunt on the new format, then restore the load below.
+# PATH = sys.argv[1] if len(sys.argv) > 1 else "poem.jsonl"
+#
+# DF_FULL, X_FULL = load_jsonl(PATH)
+# N_DIMS = X_FULL.shape[1]
+# print(f"[info] {len(DF_FULL)} tokens, {N_DIMS} dims, "
+#       f"{DF_FULL['line_index'].nunique()} lines")
+#
+DIM_OPTS: list = []
+LINE_OPTS: list = []  # stubbed while the legacy load is disabled
 
 app = Dash(__name__)
 app.title = "Embedding Dimension Explorer"
