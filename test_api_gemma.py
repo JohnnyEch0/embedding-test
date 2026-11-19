@@ -144,6 +144,87 @@ def tmp_dirs(tmp_path):
     return inp, out
 
 
+# --- poem_texts ---
+
+class TestPoemTexts:
+
+    def test_two_stanzas(self, tmp_path):
+        md = tmp_path / "t.md"
+        md.write_text("alpha beta\ngamma\n\ndelta epsilon\n")
+        words, lines, verse_infos, poem_text = api_gemma.poem_texts(md)
+        assert words == ["alpha", "beta", "gamma", "delta", "epsilon"]
+        assert lines == ["alpha beta", "gamma", "delta epsilon"]
+        assert len(verse_infos) == 2
+        # verbatim to_str() texts: trailing space per line, trailing newline per block
+        assert verse_infos[0] == ("alpha beta \ngamma \n", (0, 2))
+        assert verse_infos[1] == ("delta epsilon \n", (2, 3))
+        assert poem_text == "alpha beta \ngamma \n\ndelta epsilon \n\n"
+
+    def test_single_stanza(self, tmp_path):
+        md = tmp_path / "t.md"
+        md.write_text("one two\nthree four\n")
+        words, lines, verse_infos, poem_text = api_gemma.poem_texts(md)
+        assert len(verse_infos) == 1
+        assert verse_infos[0][1] == (0, 2)
+
+
+# --- embed_poem_file ---
+
+class TestEmbedPoemFile:
+
+    def test_end_to_end(self, tmp_path):
+        md = tmp_path / "in" / "test.md"
+        md.parent.mkdir()
+        md.write_text("hello world\nfoo bar\n\nbaz qux\n")
+        out = tmp_path / "out"
+        out.mkdir()
+        result = api_gemma.embed_poem_file(md, any_fake_client(), "fake-model", 64, 4, out)
+        assert result == out / "eg2_d64_test.jsonl"
+        recs = [json.loads(ln) for ln in result.read_text().splitlines() if ln.strip()]
+        header = recs[0]
+        assert header["type"] == "Poem-Embeddings"
+        assert header["schema_version"] == 1
+        assert header["dimensions"] == 64
+        line_recs = [r for r in recs if "line_index" in r]
+        assert len(line_recs) == 3
+        for r in line_recs:
+            assert len(r["line_embedding"]) == 64
+            for w in r["words"]:
+                assert len(w["embedding"]) == 64
+        verse_recs = [r for r in recs if "verse_index" in r]
+        assert [v["line_range"] for v in verse_recs] == [[0, 2], [2, 3]]
+        for v in verse_recs:
+            assert len(v["verse_embedding"]) == 64
+        poem_recs = [r for r in recs if "poem" in r]
+        assert len(poem_recs) == 1
+        assert poem_recs[0]["poem"] is True
+        assert len(poem_recs[0]["poem_embedding"]) == 64
+
+    def test_empty_md_returns_none(self, tmp_path):
+        md = tmp_path / "in" / "empty.md"
+        md.parent.mkdir()
+        md.write_text("\n\n")
+        out = tmp_path / "out"
+        out.mkdir()
+        assert api_gemma.embed_poem_file(md, any_fake_client(), "m", 8, 4, out) is None
+        assert list(out.iterdir()) == []
+
+
+class AnyFakeEmbeddings:
+    """Canned vector per position, any input strings."""
+
+    def create(self, model, input, dimensions):
+        from types import SimpleNamespace
+        data = [SimpleNamespace(index=i, embedding=[i / 1000.0] * dimensions)
+                for i in range(len(input))]
+        return SimpleNamespace(data=data)
+
+
+def any_fake_client():
+    from types import SimpleNamespace
+    return SimpleNamespace(embeddings=AnyFakeEmbeddings())
+
+
 # --- parse_args ---
 
 class TestParseArgs:
@@ -203,17 +284,21 @@ class TestEmbed:
 
 class TestMain:
 
-    def test_dims_in_filename(self, tmp_path, fake_client, monkeypatch):
-        monkeypatch.setattr(api_gemma, "client", fake_client)
+    def test_dims_in_filename(self, tmp_path, monkeypatch):
+        fake = any_fake_client()
+        monkeypatch.setattr(api_gemma, "client", fake)
         (tmp_path / "in").mkdir()
         (tmp_path / "in" / "test.md").write_text("hello world\nfoo bar\n")
         api_gemma.main(["--dims", "64", str(tmp_path / "in"), str(tmp_path / "out")])
         files = list((tmp_path / "out").glob("eg2_d64_*.jsonl"))
         assert len(files) == 1
         recs = [json.loads(ln) for ln in files[0].read_text().splitlines() if ln.strip()]
-        assert len(recs) == 2
-        assert len(recs[0]["words"]) == 2  # line 1: hello world
-        assert all(len(e) == 64 for e in [w["embedding"] for w in recs[0]["words"]])
+        line_recs = [r for r in recs if "line_index" in r]
+        assert len(line_recs) == 2  # test.md has 2 lines
+        assert len(line_recs[0]["words"]) == 2  # line 1: hello world
+        assert all(len(e) == 64 for e in [w["embedding"] for w in line_recs[0]["words"]])
+        assert len([r for r in recs if "verse_index" in r]) == 1
+        assert len([r for r in recs if "poem" in r]) == 1
 
     def test_non_md_ignored(self, tmp_path, fake_client, monkeypatch):
         monkeypatch.setattr(api_gemma, "client", fake_client)

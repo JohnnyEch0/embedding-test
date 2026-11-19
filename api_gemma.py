@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from auth import client
+from data import Metadata, Poem, PoemEmbeddings
 
 MODEL = "google/embeddinggemma-2"
 DIMS = 128
@@ -105,6 +106,102 @@ def write_jsonl(
     return out_path
 
 
+def poem_texts(
+    path: str | Path,
+) -> tuple[list[str], list[str], list[tuple[str, tuple[int, int]]], str]:
+    """Return (words, raw_lines, verse_infos, poem_text) for a .md poem file.
+
+    verse_infos: one (text, (line_start, line_end_exclusive)) per verse.
+    Verse/poem texts are the verbatim to_str() outputs (trailing
+    spaces/newlines included).
+    """
+    p = Path(path)
+    poem = Poem.from_markdown(p)
+    words = [w for v in poem.verses for l in v.lines for w in l.words]
+    raw_lines = [ln for ln in p.read_text(encoding="utf-8").splitlines() if ln.strip()]
+    verse_infos: list[tuple[str, tuple[int, int]]] = []
+    start = 0
+    for v in poem.verses:
+        n = len(v.lines)
+        verse_infos.append((v.to_str(), (start, start + n)))
+        start += n
+    return words, raw_lines, verse_infos, poem.to_str()
+
+
+def make_metadata(stem: str, model: str, dims: int) -> Metadata:
+    m = Metadata()
+    m.schema_version = PoemEmbeddings.SCHEMA_VERSION
+    m.author = None
+    m.title = stem
+    m.model = model
+    m.dimensions = dims
+    m.procedures = [f"api-embedding:{model}"]
+    return m
+
+
+def embed_poem_file(
+    path: str | Path,
+    client: Any,
+    model: str,
+    dims: int,
+    batch: int,
+    out_dir: str | Path,
+) -> Path | None:
+    """Embed one poem at word/line/verse/poem levels, write JSONL, return path."""
+    path = Path(path)
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    words, raw_lines, verse_infos, poem_text = poem_texts(path)
+    if not words:
+        return None
+    n_lines = len(raw_lines)
+    if n_lines != sum(e - s for _, (s, e) in verse_infos):
+        return None
+
+    texts = words + raw_lines + [t for t, _ in verse_infos] + [poem_text]
+    vectors = embed(texts, client, model, dims, batch)
+
+    n_words = len(words)
+    word_vecs = vectors[:n_words]
+    line_vecs = vectors[n_words:n_words + n_lines]
+    verse_vecs = vectors[n_words + n_lines:-1]
+    poem_vec = vectors[-1]
+
+    line_records = []
+    pos = 0
+    for i, line in enumerate(raw_lines):
+        ws = line.split()
+        rec_words = [{"word": w, "embedding": v}
+                     for w, v in zip(ws, word_vecs[pos:pos + len(ws)])]
+        pos += len(ws)
+        line_records.append({
+            "line_index": i,
+            "line": line,
+            "words": rec_words,
+            "line_embedding": line_vecs[i],
+        })
+    if pos != n_words:
+        raise ValueError(f"word split mismatch: {pos} vs {n_words}")
+
+    verse_records = [{
+        "verse_index": i,
+        "line_range": [s, e],
+        "text": t,
+        "verse_embedding": v,
+    } for i, ((t, (s, e)), v) in enumerate(zip(verse_infos, verse_vecs))]
+
+    pe = PoemEmbeddings()
+    pe.metadata = make_metadata(path.stem, model, dims)
+    pe.lines = line_records
+    pe.verses = verse_records
+    pe.poem = {"text": poem_text, "poem_embedding": poem_vec}
+
+    out_path = out_dir / f"eg2_d{dims}_{path.stem}.jsonl"
+    pe.to_jsonl(out_path)
+    return out_path
+
+
 def embed_file(
     path: str | Path,
     client: Any,
@@ -136,10 +233,9 @@ def main(argv: Sequence[str] | None = None) -> None:
     args = parse_args(argv)
     os.makedirs(args.output, exist_ok=True)
     for path in iter_md_files(args.input):
-        summary = embed_file(path, client, args.model, args.dims, args.batch, args.output)
+        summary = embed_poem_file(path, client, args.model, args.dims, args.batch, args.output)
         if summary:
-            out_path, n_lines, n_words = summary
-            print(f"{os.path.basename(path)} -> {out_path} ({n_lines} lines, {n_words} words)")
+            print(f"{os.path.basename(path)} -> {summary}")
 
 
 if __name__ == "__main__":
