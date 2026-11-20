@@ -29,6 +29,7 @@ volumetric_fog_sky_affect = 0.2
 [node name="main" type="Node3D" unique_id=475395517]
 script = ExtResource("1_h2yge")
 automation = true
+show_line_stars = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=647563580]
 environment = SubResource("Environment_aa68f")

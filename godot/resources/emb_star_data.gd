@@ -6,3 +6,4 @@ extends Resource
 @export var mesh: Mesh
 @export var material: Material
 @export var spawn_pos: Vector3
+@export var kind:StringName

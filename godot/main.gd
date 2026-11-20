@@ -8,6 +8,9 @@ const DEBUG_ACTIONS := {
 	&"debug_origin_lines": &"word_to_origin",
 	&"debug_sentence_bounds_box": &"sentence_bounds_box",
 	&"debug_cone": &"sentence_cone",
+	&"debug_line_stars":  &"line_stars",
+	&"debug_verse_stars": &"verse_stars",
+	&"debug_poem_stars":  &"poem_stars",
 } #action names to debug panelnames
 var cur_line := 0
 
@@ -24,6 +27,7 @@ func _ready() -> void:
 	stars_node.stars_rebuilt.connect(orbit.fit)
 	orbit.fit(stars_node.last_box, stars_node.last_cone)  # Spheres' _ready already ran
 	set_automation(automation)
+	
 	pass # Replace with function body.
 
 
@@ -47,8 +51,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			#print("Event is action pressed %s  --> %s" % [action, DEBUG_ACTIONS[action]]  )
 			stars_node.toggle_debug(DEBUG_ACTIONS[action])
 	if event.is_action_pressed("next_line"):
-		cur_line = wrapi(cur_line + 1, 0, stars_node.line_count())
-		stars_node.create_stars_from_data([cur_line])
+		_advance_line()
 	pass
 
 
@@ -59,7 +62,7 @@ func set_automation(on: bool) -> void:
 
 func _advance_line() -> void:
 	cur_line = wrapi(cur_line + 1, 0, stars_node.line_count())
-	stars_node.create_stars_from_data([cur_line])  # triggers stars_rebuilt -> orbit.fit
+	_rebuild() # triggers stars_rebuilt -> orbit.fit
 
 func _is_user_input(event: InputEvent) -> bool:
 	if event is InputEventMouseMotion:
@@ -68,3 +71,12 @@ func _is_user_input(event: InputEvent) -> bool:
 		if event.is_action_pressed(a):
 			return true
 	return false
+
+@export var show_line_stars := false
+@export var show_verse_stars := false
+@export var show_poem_stars := false
+
+
+func _rebuild() -> void:
+	print(show_poem_stars, show_line_stars, show_verse_stars)
+	stars_node.create_stars_from_data([cur_line], [], show_poem_stars, show_line_stars, show_verse_stars)

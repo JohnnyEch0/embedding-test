@@ -22,6 +22,13 @@ signal stars_rebuilt(box: AABB, cone: Dictionary)
 var last_box := AABB()
 var last_cone: Dictionary = {}
 
+# style
+const KIND_STYLE := {
+	&"line":  {"color": Color.ORANGE,  "scale": 2.0},
+	&"verse": {"color": Color.MAGENTA, "scale": 5.0},
+	&"poem":  {"color": Color.WHITE,   "scale": 8.0},
+}
+
 
 func _read_json() -> Variant:
 	var path := _resolve_path()
@@ -67,7 +74,7 @@ func _ready() -> void:
 	if _lines.is_empty():
 		push_error("No lines in JSON data")
 		return
-	print_shape(data)
+	#print_shape(data)
 	create_stars_from_data([0], [], false)  # startup: first line
 	
 	
@@ -77,46 +84,75 @@ func _ready() -> void:
 	# func signature create_stars_from_data(line indices, verse_indices, show_poem_star:bool)
 	# called from main input handling
 
-func create_stars_from_data(line_indices: Array, verse_indices: Array = [], show_poem_star := false) -> void:
+func create_stars_from_data(
+		line_indices: Array,
+		verse_indices: Array = [],
+		show_poem_star := false,
+		show_line_stars := false,
+		show_verse_stars := false) -> void:
 	clear_stars()
 
-	# union of requested lines, deduplicated and sorted
 	var wanted := {}
 	for i in line_indices:
-		wanted[i] = true
+		wanted[int(i)] = true
+	var verses_used: Array[int] = []
 	for vi in verse_indices:
 		if vi < 0 or vi >= _verses.size():
 			push_warning("Verse index out of range: %d" % vi)
 			continue
-		for li in _verses[vi].get("line_indices", []):  # ASSUMED key
-			wanted[int(li)] = true
+		verses_used.append(int(vi))
+		var r: Array = _verses[vi].get("line_range", [])
+		if r.size() == 2:
+			for li in range(int(r[0]), int(r[1]) + 1):  # ASSUMED inclusive
+				wanted[li] = true
 	var indices := wanted.keys()
 	indices.sort()
 
-	var star_data: Array[EmbStarData] = []
+	var words: Array[EmbStarData] = []
+	var extras: Array[EmbStarData] = []
+
 	for li in indices:
 		if li < 0 or li >= _lines.size():
 			push_warning("Line index out of range: %d" % li)
 			continue
-		for w in _lines[li].get("words", []):
-			star_data.append(_make_star_data(w["word"], w["embedding"]))
+		var line: Dictionary = _lines[li]
+		for w in line.get("words", []):
+			words.append(_make_star_data(w["word"], w["embedding"]))
+		if show_line_stars and line.has("line_embedding"):
+			print("Line shown=")
+			extras.append(_make_star_data(line.get("line", "line %d" % li), line["line_embedding"], &"line"))
 
-	if show_poem_star and _poem.has("embedding"):  # ASSUMED key
-		star_data.append(_make_star_data(_poem.get("title", "poem"), _poem["embedding"]))
+	if show_verse_stars:
+		for vi in _verses.size():
+			var v: Dictionary = _verses[vi]
+			if not v.has("verse_embedding"):
+				continue
+			var r: Array = v.get("line_range", [])
+			var hit := vi in verses_used
+			if not hit and r.size() == 2:
+				for li in indices:
+					if li >= int(r[0]) and li <= int(r[1]):
+						hit = true
+						break
+			if hit:
+				extras.append(_make_star_data("verse %d" % vi, v["verse_embedding"], &"verse"))
 
-	if star_data.is_empty():
+	if show_poem_star and _poem.has("poem_embedding"):
+		extras.append(_make_star_data(metadata.get("title", "poem"), _poem["poem_embedding"], &"poem"))
+
+	if words.is_empty():
 		push_warning("Nothing to spawn")
 		return
-	create_stars(star_data)
+	create_stars(words)  # cone/AABB/chain from words only
+	for sd in extras:
+		_spawn_extra(sd)
 
-
-func _make_star_data(label: String, embedding: Array) -> EmbStarData:
-	var emb := embedding.slice(0, 3)
+func _make_star_data(label: String, embedding: Array, kind := &"word") -> EmbStarData:
 	var sd := EmbStarData.new()
 	sd.label = label
-	sd.spawn_pos = Vector3(emb[0], emb[1], emb[2]) * SCALE
+	sd.kind = kind
+	sd.spawn_pos = Vector3(embedding[0], embedding[1], embedding[2]) * SCALE
 	return sd
-
 
 func clear_stars() -> void:
 	for s in stars:
@@ -190,7 +226,7 @@ func create_stars(star_data) -> void:
 	var cone = find_cluster_cone(star_data)
 	if not cone.is_empty():
 		register_debug(&"sentence_cone", draw_cone(cone))
-	print(min_max)
+	# print(min_max)
 	var bounds_box = MeshInstance3D.new()
 	add_child(bounds_box)
 	draw_aabb(bounds_box, min_max)
@@ -199,7 +235,21 @@ func create_stars(star_data) -> void:
 	last_box = min_max
 	last_cone = cone
 	stars_rebuilt.emit(min_max, cone)
-
+	
+func _spawn_extra(sd: EmbStarData) -> void:
+	var style: Dictionary = KIND_STYLE[sd.kind]
+	var inst: MeshInstance3D = STAR_SCENE.instantiate()
+	inst.data = sd
+	inst.position = sd.spawn_pos
+	add_child(inst)
+	inst.scale = Vector3.ONE * style["scale"]
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.albedo_color = style["color"]
+	inst.material_override = mat
+	stars.append(inst)
+	register_debug(StringName(str(sd.kind) + "_stars"), inst)  # line_stars / verse_stars / poem_stars
+	register_debug(&"labels", inst.label, _set_label_range)
 
 
 func draw_lines(pairs: Array):
@@ -277,7 +327,6 @@ func draw_cone(cone: Dictionary, color := Color.CYAN, segments := 48) -> MeshIns
 	return mi
 
 
-# ======================= debug register
 # ======================= debug register
 const LABEL_RANGE_ON := 5000000.0
 const LABEL_RANGE_OFF := 5.0
