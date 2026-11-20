@@ -16,6 +16,13 @@ var _lines: Array = []
 var _verses: Array = []
 var _poem: Dictionary = {}
 var metadata: Dictionary = {}
+
+# for automation
+signal stars_rebuilt(box: AABB, cone: Dictionary)
+var last_box := AABB()
+var last_cone: Dictionary = {}
+
+
 func _read_json() -> Variant:
 	var path := _resolve_path()
 	if path == "":
@@ -125,14 +132,15 @@ func clear_stars() -> void:
 
 
 func find_cluster_volume(star_data: Array[EmbStarData]):
-
-	var minima = Vector3i(INF, INF, INF)
-	var maxima = Vector3i(-INF, -INF, -INF)
+	if star_data.is_empty():
+			return AABB()
+	var minima := Vector3(INF, INF, INF)
+	var maxima := Vector3(-INF, -INF, -INF)
 	for d in star_data:
 		minima = minima.min(d.spawn_pos)
 		maxima = maxima.max(d.spawn_pos)
-
-	return AABB(minima, maxima-minima)
+	return AABB(minima, maxima - minima)
+		
 func find_cluster_cone(star_data: Array[EmbStarData]) -> Dictionary:
 	var sum := Vector3.ZERO
 	var r_min := INF
@@ -167,6 +175,7 @@ func create_stars(star_data) -> void:
 
 		add_child(inst)
 		stars.append(inst)
+		register_debug(&"labels", inst.label, _set_label_range)
 		if prev: pairs.append([prev.position, inst.position])
 		prev = inst
 
@@ -186,6 +195,11 @@ func create_stars(star_data) -> void:
 	add_child(bounds_box)
 	draw_aabb(bounds_box, min_max)
 	register_debug(&"sentence_bounds_box", bounds_box)
+	
+	last_box = min_max
+	last_cone = cone
+	stars_rebuilt.emit(min_max, cone)
+
 
 
 func draw_lines(pairs: Array):
@@ -261,17 +275,42 @@ func draw_cone(cone: Dictionary, color := Color.CYAN, segments := 48) -> MeshIns
 	mi.mesh = im
 	add_child(mi)
 	return mi
-# ======================= debug register
-var debug_nodes: Dictionary = {}  # StringName -> Array[Node3D]
 
-func register_debug(key: StringName, node: Node3D) -> void:
-	node.visible = false  # hidden by default
-	debug_nodes.get_or_add(key, []).append(node)  # get_or_add: Godot 4.3+
+
+# ======================= debug register
+# ======================= debug register
+const LABEL_RANGE_ON := 5000000.0
+const LABEL_RANGE_OFF := 5.0
+
+var debug_nodes: Dictionary = {}    # StringName -> Array[Node3D]
+var debug_on: Dictionary = {}       # StringName -> bool, survives rebuilds
+var debug_setters: Dictionary = {}  # StringName -> Callable(node, on); default: visible
+
+func register_debug(key: StringName, node: Node3D, setter := Callable()) -> void:
+	if setter.is_valid():
+		debug_setters[key] = setter
+	debug_nodes.get_or_add(key, []).append(node)
+	_apply_debug(key, node)  # applies current state, hidden by default
+
+func set_debug(key: StringName, on: bool) -> void:
+	debug_on[key] = on
+	for n: Node3D in debug_nodes.get(key, []):
+		if is_instance_valid(n):
+			_apply_debug(key, n)
 
 func toggle_debug(key: StringName) -> void:
-	#print("Toggle %s" % key)
-	for n: Node3D in debug_nodes.get(key, []):
-		n.visible = not n.visible
+	set_debug(key, not debug_on.get(key, false))
+
+func _apply_debug(key: StringName, node: Node3D) -> void:
+	var on: bool = debug_on.get(key, false)
+	var setter: Callable = debug_setters.get(key, Callable())
+	if setter.is_valid():
+		setter.call(node, on)
+	else:
+		node.visible = on
+
+func _set_label_range(label: Node3D, on: bool) -> void:
+	(label as Label3D).visibility_range_end = LABEL_RANGE_ON if on else LABEL_RANGE_OFF
 
 
 func print_shape(v: Variant, key := "root", depth := 0) -> void:
