@@ -12,7 +12,10 @@ var stars: Array[EmbStar] = []
 @export var radius: float = 0.5
 @export var show_lines := false
 @export var draw_lines_origin := false
-
+var _lines: Array = []
+var _verses: Array = []
+var _poem: Dictionary = {}
+var metadata: Dictionary = {}
 func _read_json() -> Variant:
 	var path := _resolve_path()
 	if path == "":
@@ -50,18 +53,15 @@ func _ready() -> void:
 	if data == null:
 		push_error("Failed to load JSON data from " + datapath)
 		return
-
-	# Store all data in temporaries
-	var metadata: Dictionary = data.get("metadata", {})
-	var lines: Array = data.get("lines", [])
-	var verses: Array = data.get("verses", [])
-	var poem: Dictionary = data.get("poem", {})
-
-	if lines.is_empty():
+	metadata = data.get("metadata", {})
+	_lines = data.get("lines", [])
+	_verses = data.get("verses", [])
+	_poem = data.get("poem", {})
+	if _lines.is_empty():
 		push_error("No lines in JSON data")
 		return
-	
 	print_shape(data)
+	create_stars_from_data([0], [], false)  # startup: first line
 	
 	
 	# from here on, we should be able to get one or multiple lines from within the game instead of once loaded on startup
@@ -70,21 +70,59 @@ func _ready() -> void:
 	# func signature create_stars_from_data(line indices, verse_indices, show_poem_star:bool)
 	# called from main input handling
 
-	var first_line: Dictionary = lines[0]
-	var words: Array = first_line.get("words", [])
-	words.append_array(lines[1].get("words", []))
+func create_stars_from_data(line_indices: Array, verse_indices: Array = [], show_poem_star := false) -> void:
+	clear_stars()
+
+	# union of requested lines, deduplicated and sorted
+	var wanted := {}
+	for i in line_indices:
+		wanted[i] = true
+	for vi in verse_indices:
+		if vi < 0 or vi >= _verses.size():
+			push_warning("Verse index out of range: %d" % vi)
+			continue
+		for li in _verses[vi].get("line_indices", []):  # ASSUMED key
+			wanted[int(li)] = true
+	var indices := wanted.keys()
+	indices.sort()
+
 	var star_data: Array[EmbStarData] = []
+	for li in indices:
+		if li < 0 or li >= _lines.size():
+			push_warning("Line index out of range: %d" % li)
+			continue
+		for w in _lines[li].get("words", []):
+			star_data.append(_make_star_data(w["word"], w["embedding"]))
 
-	for w in words:
-		var emb: Array = w["embedding"].slice(0, 3)
-		var single_star_data = EmbStarData.new()
-		single_star_data.label = w["word"]
-		single_star_data.spawn_pos = Vector3(emb[0] * SCALE, emb[1] * SCALE, emb[2] * SCALE)
-		star_data.append(single_star_data)
+	if show_poem_star and _poem.has("embedding"):  # ASSUMED key
+		star_data.append(_make_star_data(_poem.get("title", "poem"), _poem["embedding"]))
 
+	if star_data.is_empty():
+		push_warning("Nothing to spawn")
+		return
 	create_stars(star_data)
+
+
+func _make_star_data(label: String, embedding: Array) -> EmbStarData:
+	var emb := embedding.slice(0, 3)
+	var sd := EmbStarData.new()
+	sd.label = label
+	sd.spawn_pos = Vector3(emb[0], emb[1], emb[2]) * SCALE
+	return sd
+
+
+func clear_stars() -> void:
+	for s in stars:
+		if is_instance_valid(s):
+			s.queue_free()
+	stars.clear()
+	for key in debug_nodes:
+		for n in debug_nodes[key]:
+			if is_instance_valid(n):
+				n.queue_free()
+	debug_nodes.clear()
 	
-	
+
 
 func find_cluster_volume(star_data: Array[EmbStarData]):
 
@@ -253,3 +291,5 @@ func print_shape(v: Variant, key := "root", depth := 0) -> void:
 				print_shape(v[0], "[0]", depth + 1)
 		_:
 			print("%s%s: %s = %s" % [pad, key, type_string(typeof(v)), str(v).left(40)])
+
+func line_count() -> int: return _lines.size()

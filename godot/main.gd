@@ -8,7 +8,7 @@ const DEBUG_ACTIONS := {
 	&"debug_sentence_bounds_box": &"sentence_bounds_box",
 	&"debug_cone": &"sentence_cone",
 } #action names to debug panelnames
-
+var cur_line := 0
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	#stars_node = $"Spheres"
@@ -34,4 +34,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.is_action_pressed(action):
 			#print("Event is action pressed %s  --> %s" % [action, DEBUG_ACTIONS[action]]  )
 			stars_node.toggle_debug(DEBUG_ACTIONS[action])
+	if event.is_action_pressed("next_line"):
+		cur_line = wrapi(cur_line + 1, 0, stars_node.line_count())
+		stars_node.create_stars_from_data([cur_line])
 	pass
