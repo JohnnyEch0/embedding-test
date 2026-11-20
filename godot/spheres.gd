@@ -73,7 +73,41 @@ func _ready() -> void:
 		star_data.append(single_star_data)
 
 	create_stars(star_data)
+	
+	
 
+func find_cluster_volume(star_data: Array[EmbStarData]):
+
+	var minima = Vector3i(INF, INF, INF)
+	var maxima = Vector3i(-INF, -INF, -INF)
+	for d in star_data:
+		minima = minima.min(d.spawn_pos)
+		maxima = maxima.max(d.spawn_pos)
+
+	return AABB(minima, maxima-minima)
+func find_cluster_cone(star_data: Array[EmbStarData]) -> Dictionary:
+	var sum := Vector3.ZERO
+	var r_min := INF
+	var r_max := 0.0
+	for d in star_data:
+		var r := d.spawn_pos.length()
+		if r < 0.0001: continue  # direction undefined at origin
+		r_min = minf(r_min, r)
+		r_max = maxf(r_max, r)
+		sum += d.spawn_pos / r
+	if sum.length() < 0.0001:
+		return {}  # directions cancel out, no meaningful cone
+	var m := sum.normalized()
+	var theta := 0.0
+	for d in star_data:
+		if d.spawn_pos.length() < 0.0001: continue
+		theta = maxf(theta, m.angle_to(d.spawn_pos))
+	var omega := TAU * (1.0 - cos(theta))
+	return {
+		"axis": m, "half_angle": theta, "solid_angle": omega,
+		"r_min": r_min, "r_max": r_max,
+		"volume": omega / 3.0 * (pow(r_max, 3) - pow(r_min, 3)),
+	}
 func create_stars(star_data) -> void:
 	var pairs: Array = []
 	var prev: MeshInstance3D = null
@@ -88,12 +122,19 @@ func create_stars(star_data) -> void:
 		prev = inst
 
 	if show_lines:
-		draw_lines(pairs)
+		register_debug(&"word_connections", draw_lines(pairs))
 	if draw_lines_origin:
 		pairs = []
 		for sd in star_data:
 			pairs.append([sd.spawn_pos, ORIGIN])
-		draw_lines(pairs)
+		register_debug(&"word_to_origin",draw_lines(pairs))
+	var min_max = find_cluster_volume(star_data)
+	# var cone = find_cluster_cone(star_data)
+	print(min_max)
+	var bounds_box = MeshInstance3D.new()
+	add_child(bounds_box)
+	draw_aabb(bounds_box, min_max)
+	register_debug(&"sentence_bounds_box", bounds_box)
 
 
 func draw_lines(pairs: Array):
@@ -109,3 +150,31 @@ func draw_lines(pairs: Array):
 	var line_inst := MeshInstance3D.new()
 	line_inst.mesh = mesh
 	add_child(line_inst)
+	return line_inst
+
+func draw_aabb(mi: MeshInstance3D, box: AABB, color := Color.YELLOW) -> void:
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.albedo_color = color
+
+	var im := ImmediateMesh.new()
+	im.surface_begin(Mesh.PRIMITIVE_LINES, mat)
+	for i in 8:
+		for bit in [1, 2, 4]:
+			if i & bit == 0:  # edge = corners differing by one bit
+				im.surface_add_vertex(box.get_endpoint(i))
+				im.surface_add_vertex(box.get_endpoint(i | bit))
+	im.surface_end()
+	mi.mesh = im
+
+# ======================= debug register
+var debug_nodes: Dictionary = {}  # StringName -> Array[Node3D]
+
+func register_debug(key: StringName, node: Node3D) -> void:
+	node.visible = false  # hidden by default
+	debug_nodes.get_or_add(key, []).append(node)  # get_or_add: Godot 4.3+
+
+func toggle_debug(key: StringName) -> void:
+	print("Toggle %s" % key)
+	for n: Node3D in debug_nodes.get(key, []):
+		n.visible = not n.visible
