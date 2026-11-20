@@ -43,5 +43,6 @@ shape = SubResource("CapsuleShape3D_aa68f")
 
 [node name="Spheres" type="Node3D" parent="." unique_id=1652083283]
 script = ExtResource("1_ig7tw")
+default_filename = "eg2_d32_wild-geese_mary-oliver.json"
 show_lines = true
 draw_lines_origin = true

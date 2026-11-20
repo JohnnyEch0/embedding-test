@@ -60,10 +60,19 @@ func _ready() -> void:
 	if lines.is_empty():
 		push_error("No lines in JSON data")
 		return
+	
+	print_shape(data)
+	
+	
+	# from here on, we should be able to get one or multiple lines from within the game instead of once loaded on startup
+	# also per verse and per poem should be switchable
+	# startup: spawn first line
+	# func signature create_stars_from_data(line indices, verse_indices, show_poem_star:bool)
+	# called from main input handling
 
 	var first_line: Dictionary = lines[0]
 	var words: Array = first_line.get("words", [])
-	#words.append(lines[1].get("words", []))
+	words.append_array(lines[1].get("words", []))
 	var star_data: Array[EmbStarData] = []
 
 	for w in words:
@@ -222,6 +231,25 @@ func register_debug(key: StringName, node: Node3D) -> void:
 	debug_nodes.get_or_add(key, []).append(node)  # get_or_add: Godot 4.3+
 
 func toggle_debug(key: StringName) -> void:
-	print("Toggle %s" % key)
+	#print("Toggle %s" % key)
 	for n: Node3D in debug_nodes.get(key, []):
 		n.visible = not n.visible
+
+
+func print_shape(v: Variant, key := "root", depth := 0) -> void:
+	var pad := "  ".repeat(depth)
+	match typeof(v):
+		TYPE_DICTIONARY:
+			print("%s%s: Dictionary{%d}" % [pad, key, v.size()])
+			for k in v:
+				print_shape(v[k], str(k), depth + 1)
+		TYPE_ARRAY:
+			if v.is_empty():
+				print("%s%s: Array[0]" % [pad, key])
+			elif typeof(v[0]) == TYPE_FLOAT or typeof(v[0]) == TYPE_INT:
+				print("%s%s: numbers[%d]" % [pad, key, v.size()])  # e.g. embedding
+			else:
+				print("%s%s: Array[%d], first element:" % [pad, key, v.size()])
+				print_shape(v[0], "[0]", depth + 1)
+		_:
+			print("%s%s: %s = %s" % [pad, key, type_string(typeof(v)), str(v).left(40)])

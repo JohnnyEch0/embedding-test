@@ -32,6 +32,6 @@ func _unhandled_input(event: InputEvent) -> void:
 			star.label.visibility_range_end = 5
 	for action in DEBUG_ACTIONS:
 		if event.is_action_pressed(action):
-			print("Event is action pressed %s  --> %s" % [action, DEBUG_ACTIONS[action]]  )
+			#print("Event is action pressed %s  --> %s" % [action, DEBUG_ACTIONS[action]]  )
 			stars_node.toggle_debug(DEBUG_ACTIONS[action])
 	pass

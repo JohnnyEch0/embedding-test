@@ -1,6 +1,6 @@
 extends CharacterBody3D
 
-@export var speed: float = 8.0
+@export var speed: float = 20.0
 @export var mouse_sens: float = 0.002
 
 func _ready() -> void:
