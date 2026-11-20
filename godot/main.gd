@@ -6,6 +6,7 @@ const DEBUG_ACTIONS := {
 	&"debug_word_connection_lines": &"word_connections",
 	&"debug_origin_lines": &"word_to_origin",
 	&"debug_sentence_bounds_box": &"sentence_bounds_box",
+	&"debug_cone": &"sentence_cone",
 } #action names to debug panelnames
 
 # Called when the node enters the scene tree for the first time.

@@ -63,6 +63,7 @@ func _ready() -> void:
 
 	var first_line: Dictionary = lines[0]
 	var words: Array = first_line.get("words", [])
+	#words.append(lines[1].get("words", []))
 	var star_data: Array[EmbStarData] = []
 
 	for w in words:
@@ -108,6 +109,7 @@ func find_cluster_cone(star_data: Array[EmbStarData]) -> Dictionary:
 		"r_min": r_min, "r_max": r_max,
 		"volume": omega / 3.0 * (pow(r_max, 3) - pow(r_min, 3)),
 	}
+
 func create_stars(star_data) -> void:
 	var pairs: Array = []
 	var prev: MeshInstance3D = null
@@ -129,7 +131,9 @@ func create_stars(star_data) -> void:
 			pairs.append([sd.spawn_pos, ORIGIN])
 		register_debug(&"word_to_origin",draw_lines(pairs))
 	var min_max = find_cluster_volume(star_data)
-	# var cone = find_cluster_cone(star_data)
+	var cone = find_cluster_cone(star_data)
+	if not cone.is_empty():
+		register_debug(&"sentence_cone", draw_cone(cone))
 	print(min_max)
 	var bounds_box = MeshInstance3D.new()
 	add_child(bounds_box)
@@ -167,6 +171,49 @@ func draw_aabb(mi: MeshInstance3D, box: AABB, color := Color.YELLOW) -> void:
 	im.surface_end()
 	mi.mesh = im
 
+func draw_cone(cone: Dictionary, color := Color.CYAN, segments := 48) -> MeshInstance3D:
+	var axis: Vector3 = cone["axis"]
+	var theta: float = cone["half_angle"]
+	var r_min: float = cone["r_min"]
+	var r_max: float = cone["r_max"]
+
+	# orthonormal basis perpendicular to axis
+	var helper := Vector3.UP if absf(axis.dot(Vector3.UP)) < 0.99 else Vector3.RIGHT
+	var u := axis.cross(helper).normalized()
+	var v := axis.cross(u)
+
+	# point on the cone surface at radius r, azimuth a
+	var pt := func(r: float, a: float) -> Vector3:
+		return r * (cos(theta) * axis + sin(theta) * (cos(a) * u + sin(a) * v))
+
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.albedo_color = color
+
+	var im := ImmediateMesh.new()
+	im.surface_begin(Mesh.PRIMITIVE_LINES, mat)
+
+	# axis
+	im.surface_add_vertex(Vector3.ZERO)
+	im.surface_add_vertex(axis * r_max)
+
+	for i in segments:
+		var a0 := TAU * i / segments
+		var a1 := TAU * (i + 1) / segments
+		for r in [r_min, r_max]:  # rings
+			im.surface_add_vertex(pt.call(r, a0))
+			im.surface_add_vertex(pt.call(r, a1))
+		if i % (segments / 8) == 0:  # generators, 8 total
+			im.surface_add_vertex(Vector3.ZERO)
+			im.surface_add_vertex(pt.call(r_min, a0))
+			im.surface_add_vertex(pt.call(r_min, a0))
+			im.surface_add_vertex(pt.call(r_max, a0))
+	im.surface_end()
+
+	var mi := MeshInstance3D.new()
+	mi.mesh = im
+	add_child(mi)
+	return mi
 # ======================= debug register
 var debug_nodes: Dictionary = {}  # StringName -> Array[Node3D]
 
