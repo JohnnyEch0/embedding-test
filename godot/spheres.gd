@@ -3,7 +3,7 @@ extends Node3D
 const STAR_SCENE = preload("res://emb_star.tscn")
 
 const SCALE := 1000
-const ORIGIN = Vector3(0,0,0)
+const ORIGIN = Vector3(0, 0, 0)
 @export var datapath := "res://data"
 @export var default_filename := ""
 var stars: Array[EmbStar] = []
@@ -43,7 +43,7 @@ func _resolve_path() -> String:
 		push_error("No files found in: " + datapath)
 		return ""
 	return datapath + "/" + files[randi() % files.size()]
-		
+
 
 func _ready() -> void:
 	var data = _read_json()
@@ -72,6 +72,9 @@ func _ready() -> void:
 		single_star_data.spawn_pos = Vector3(emb[0] * SCALE, emb[1] * SCALE, emb[2] * SCALE)
 		star_data.append(single_star_data)
 
+	create_stars(star_data)
+
+func create_stars(star_data) -> void:
 	var pairs: Array = []
 	var prev: MeshInstance3D = null
 	for sd in star_data:
