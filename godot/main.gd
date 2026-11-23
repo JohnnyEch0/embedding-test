@@ -2,16 +2,6 @@ extends Node3D
 @onready var stars_node = $"Spheres"
 
 
-const DEBUG_ACTIONS := {
-	&"debug_words_view": &"labels",
-	&"debug_word_connection_lines": &"word_connections",
-	&"debug_origin_lines": &"word_to_origin",
-	&"debug_sentence_bounds_box": &"sentence_bounds_box",
-	&"debug_cone": &"sentence_cone",
-	&"debug_line_stars":  &"line_stars",
-	&"debug_verse_stars": &"verse_stars",
-	&"debug_poem_stars":  &"poem_stars",
-} #action names to debug panelnames
 var cur_line := 0
 
 # === automation
@@ -46,13 +36,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		set_automation(false)
 		return
 	
-	for action in DEBUG_ACTIONS:
-		if event.is_action_pressed(action):
-			#print("Event is action pressed %s  --> %s" % [action, DEBUG_ACTIONS[action]]  )
-			stars_node.toggle_debug(DEBUG_ACTIONS[action])
 	if event.is_action_pressed("next_line"):
 		_advance_line()
-	pass
+
+	# Debug overlays: input action names match the debug registry keys,
+	# so dispatch via InputMap directly.
+	if event is InputEventKey and event.pressed and not event.is_echo():
+		for action in InputMap.get_actions():
+			if event.is_action_pressed(action) and stars_node.has_debug(action):
+				stars_node.toggle_debug(action)
 
 
 func set_automation(on: bool) -> void:

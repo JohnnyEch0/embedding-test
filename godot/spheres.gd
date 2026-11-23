@@ -350,6 +350,9 @@ func set_debug(key: StringName, on: bool) -> void:
 func toggle_debug(key: StringName) -> void:
 	set_debug(key, not debug_on.get(key, false))
 
+func has_debug(key: StringName) -> bool:
+	return debug_nodes.has(key)
+
 func _apply_debug(key: StringName, node: Node3D) -> void:
 	var on: bool = debug_on.get(key, false)
 	var setter: Callable = debug_setters.get(key, Callable())
