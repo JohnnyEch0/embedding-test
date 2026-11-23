@@ -121,7 +121,9 @@ func _make_dims_hud() -> void:
 	# toggleable controls label
 	dims_hud = Label.new()
 	dims_hud.name = "DimsHud"
-	dims_hud.position = Vector2(12, 12)
+	dims_hud.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	dims_hud.offset_left = 12.0
+	dims_hud.offset_top = 12.0
 	dims_hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var settings := LabelSettings.new()
 	settings.font_color = Color(1, 1, 1, 0.7)
