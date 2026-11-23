@@ -12,6 +12,7 @@ var stars: Array[EmbStar] = []
 @export var radius: float = 0.5
 @export var show_lines := false
 @export var draw_lines_origin := false
+@export var show_special_stars:=true
 var _lines: Array = []
 var _verses: Array = []
 var _poem: Dictionary = {}
@@ -74,15 +75,10 @@ func _ready() -> void:
 	if _lines.is_empty():
 		push_error("No lines in JSON data")
 		return
+	# create_stars_from_data([1,2,3,4,5,6,7,8], [], true, true)
 	#print_shape(data)
-	create_stars_from_data([0], [], false)  # startup: first line
-	
-	
-	# from here on, we should be able to get one or multiple lines from within the game instead of once loaded on startup
-	# also per verse and per poem should be switchable
-	# startup: spawn first line
-	# func signature create_stars_from_data(line indices, verse_indices, show_poem_star:bool)
-	# called from main input handling
+	#create_stars_from_data([0], [], false)  # startup: first line
+
 
 func create_stars_from_data(
 		line_indices: Array,
@@ -238,10 +234,12 @@ func create_stars(star_data) -> void:
 	
 func _spawn_extra(sd: EmbStarData) -> void:
 	var style: Dictionary = KIND_STYLE[sd.kind]
-	var inst: MeshInstance3D = STAR_SCENE.instantiate()
+	var inst: EmbStar = STAR_SCENE.instantiate()
 	inst.data = sd
 	inst.position = sd.spawn_pos
+	
 	add_child(inst)
+	inst.label.font_size /= 2
 	inst.scale = Vector3.ONE * style["scale"]
 	var mat := StandardMaterial3D.new()
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -250,6 +248,8 @@ func _spawn_extra(sd: EmbStarData) -> void:
 	stars.append(inst)
 	register_debug(StringName(str(sd.kind) + "_stars"), inst)  # line_stars / verse_stars / poem_stars
 	register_debug(&"labels", inst.label, _set_label_range)
+	if show_special_stars:
+		inst.visible = true
 
 
 func draw_lines(pairs: Array):

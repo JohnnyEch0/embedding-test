@@ -27,7 +27,7 @@ func _ready() -> void:
 	stars_node.stars_rebuilt.connect(orbit.fit)
 	orbit.fit(stars_node.last_box, stars_node.last_cone)  # Spheres' _ready already ran
 	set_automation(automation)
-	
+	stars_node.create_stars_from_data([1,2,3,4,5,6,7,8], [], true, true)
 	pass # Replace with function body.
 
 
