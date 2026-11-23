@@ -18,6 +18,12 @@ var _verses: Array = []
 var _poem: Dictionary = {}
 var metadata: Dictionary = {}
 
+# dimension projection: which embedding indices are shown on X/Y/Z.
+# dim_count comes from the data metadata; dim_axes is steered by main.gd's
+# DimMap. See dim_map.gd.
+var dim_count := 3
+var dim_axes := Vector3i(0, 1, 2)
+
 # for automation
 signal stars_rebuilt(box: AABB, cone: Dictionary)
 var last_box := AABB()
@@ -72,6 +78,7 @@ func _ready() -> void:
 	_lines = data.get("lines", [])
 	_verses = data.get("verses", [])
 	_poem = data.get("poem", {})
+	dim_count = int(metadata.get("dimensions", _first_embedding_size()))
 	if _lines.is_empty():
 		push_error("No lines in JSON data")
 		return
@@ -143,11 +150,23 @@ func create_stars_from_data(
 	for sd in extras:
 		_spawn_extra(sd)
 
+func _first_embedding_size() -> int:
+	"""Fallback dim_count: size of the first word embedding in the data."""
+	for line: Dictionary in _lines:
+		for w: Dictionary in line.get("words", []):
+			return w.get("embedding", []).size()
+	return 3
+
 func _make_star_data(label: String, embedding: Array, kind := &"word") -> EmbStarData:
 	var sd := EmbStarData.new()
 	sd.label = label
 	sd.kind = kind
-	sd.spawn_pos = Vector3(embedding[0], embedding[1], embedding[2]) * SCALE
+	# clamp indices against data/metadata disagreement instead of crashing
+	var d := embedding.size()
+	var ix := mini(dim_axes.x, d - 1)
+	var iy := mini(dim_axes.y, d - 1)
+	var iz := mini(dim_axes.z, d - 1)
+	sd.spawn_pos = Vector3(embedding[ix], embedding[iy], embedding[iz]) * SCALE
 	return sd
 
 func clear_stars() -> void:
