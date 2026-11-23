@@ -7,3 +7,4 @@ extends Resource
 @export var material: Material
 @export var spawn_pos: Vector3
 @export var kind:StringName
+@export var hidden:=false

@@ -12,7 +12,7 @@ var stars: Array[EmbStar] = []
 @export var radius: float = 0.5
 @export var show_lines := false
 @export var draw_lines_origin := false
-@export var show_special_stars:=true
+#@export var show_special_stars:=true
 var _lines: Array = []
 var _verses: Array = []
 var _poem: Dictionary = {}
@@ -115,8 +115,8 @@ func create_stars_from_data(
 		for w in line.get("words", []):
 			words.append(_make_star_data(w["word"], w["embedding"]))
 		if show_line_stars and line.has("line_embedding"):
-			print("Line shown=")
-			extras.append(_make_star_data(line.get("line", "line %d" % li), line["line_embedding"], &"line"))
+			#print("Line shown=")
+			extras.append(_make_star_data(line.get("line", "line %d" % li), line["line_embedding"], &"line", show_line_stars))
 
 	if show_verse_stars:
 		for vi in _verses.size():
@@ -131,10 +131,10 @@ func create_stars_from_data(
 						hit = true
 						break
 			if hit:
-				extras.append(_make_star_data("verse %d" % vi, v["verse_embedding"], &"verse"))
+				extras.append(_make_star_data("verse %d" % vi, v["verse_embedding"], &"verse", show_verse_stars))
 
 	if show_poem_star and _poem.has("poem_embedding"):
-		extras.append(_make_star_data(metadata.get("title", "poem"), _poem["poem_embedding"], &"poem"))
+		extras.append(_make_star_data(metadata.get("title", "poem"), _poem["poem_embedding"], &"poem", show_poem_star) )
 
 	if words.is_empty():
 		push_warning("Nothing to spawn")
@@ -143,7 +143,7 @@ func create_stars_from_data(
 	for sd in extras:
 		_spawn_extra(sd)
 
-func _make_star_data(label: String, embedding: Array, kind := &"word") -> EmbStarData:
+func _make_star_data(label: String, embedding: Array, kind := &"word", hidden:=false) -> EmbStarData:
 	var sd := EmbStarData.new()
 	sd.label = label
 	sd.kind = kind
@@ -248,8 +248,7 @@ func _spawn_extra(sd: EmbStarData) -> void:
 	stars.append(inst)
 	register_debug(StringName(str(sd.kind) + "_stars"), inst)  # line_stars / verse_stars / poem_stars
 	register_debug(&"labels", inst.label, _set_label_range)
-	if show_special_stars:
-		inst.visible = true
+	if not sd.hidden: inst.visible = true
 
 
 func draw_lines(pairs: Array):

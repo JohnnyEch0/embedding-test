@@ -34,6 +34,7 @@ font_color = Color(1, 1, 1, 0.45882353)
 script = ExtResource("1_h2yge")
 automation = true
 show_line_stars = true
+show_poem_stars = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=647563580]
 environment = SubResource("Environment_aa68f")

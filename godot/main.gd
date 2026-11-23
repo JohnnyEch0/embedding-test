@@ -2,10 +2,13 @@ extends Node3D
 @onready var stars_node = $"Spheres"
 
 
-var cur_line := 0
+var cur_line := []
 
 # === automation
 @export var automation := false
+@export var show_line_stars := false
+@export var show_verse_stars := false
+@export var show_poem_stars := false
 @onready var orbit: AutoOrbit = $AutoOrbit
 @onready var player: CharacterBody3D = $CharacterBody3D
 
@@ -17,7 +20,8 @@ func _ready() -> void:
 	stars_node.stars_rebuilt.connect(orbit.fit)
 	orbit.fit(stars_node.last_box, stars_node.last_cone)  # Spheres' _ready already ran
 	set_automation(automation)
-	stars_node.create_stars_from_data([1,2,3,4,5,6,7,8], [], true, true)
+	cur_line = [0,1,2,3,4,5,6,7]
+	_rebuild()
 	pass # Replace with function body.
 
 
@@ -53,7 +57,7 @@ func set_automation(on: bool) -> void:
 	player.manual = not on
 
 func _advance_line() -> void:
-	cur_line = wrapi(cur_line + 1, 0, stars_node.line_count())
+	cur_line = [wrapi(cur_line[0] + 1, 0, stars_node.line_count())]
 	_rebuild() # triggers stars_rebuilt -> orbit.fit
 
 func _is_user_input(event: InputEvent) -> bool:
@@ -64,11 +68,9 @@ func _is_user_input(event: InputEvent) -> bool:
 			return true
 	return false
 
-@export var show_line_stars := false
-@export var show_verse_stars := false
-@export var show_poem_stars := false
+
 
 
 func _rebuild() -> void:
 	print(show_poem_stars, show_line_stars, show_verse_stars)
-	stars_node.create_stars_from_data([cur_line], [], show_poem_stars, show_line_stars, show_verse_stars)
+	stars_node.create_stars_from_data(cur_line, [], show_poem_stars, show_line_stars, show_verse_stars)
