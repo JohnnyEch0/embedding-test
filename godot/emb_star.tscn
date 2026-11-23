@@ -10,6 +10,7 @@ emission = Color(1, 1, 1, 1)
 material = SubResource("StandardMaterial3D_7lpdu")
 
 [sub_resource type="SystemFont" id="SystemFont_7lpdu"]
+subpixel_positioning = 0
 multichannel_signed_distance_field = true
 msdf_pixel_range = 8
 
@@ -23,7 +24,7 @@ pixel_size = 0.0005
 billboard = 1
 fixed_size = true
 font = SubResource("SystemFont_7lpdu")
-font_size = 120
+font_size = 60
 outline_size = 2
 width = 100.0
 
