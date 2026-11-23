@@ -74,6 +74,12 @@ text = "Press 'ctrl +' to toggle:
 5 - words
 6 - line embedding star
 q - controlls
-w - close "
+w - close 
+
+no ctrl:
+e - next line
+r - next 3 dims (+shift back)
+f/g/h - x/y/z dim (+shift back)
+"
 label_settings = SubResource("LabelSettings_lquwl")
 script = ExtResource("6_7mycd")
