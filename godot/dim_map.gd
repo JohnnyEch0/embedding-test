@@ -20,7 +20,8 @@ extends RefCounted
 ##                        distinct mapping), it degrades to a plain step and
 ##                        accepts a duplicate rather than deadlocking.
 ##
-## Both emit `changed` exactly once per call; readers never emit.
+## Both emit `changed` exactly once per actual state change (identity
+## wraps, e.g. a full cycle at dim_count=3, emit nothing); readers never emit.
 
 signal changed
 
@@ -56,9 +57,10 @@ func axes_vector() -> Vector3i:
 
 ## Jump to the next/previous trio of dimensions (dir: +1/-1).
 func advance_window(dir := 1) -> void:
+	var before := _dims.duplicate()
 	for axis in AXES:
 		_dims[axis] = posmod(_dims[axis] + 3 * dir, dim_count)
-	changed.emit()
+	_emit_if_changed(before)
 
 
 ## Step one axis to the next/previous dimension (dir: +1/-1), skipping
@@ -68,6 +70,7 @@ func advance_axis(axis: StringName, dir := 1) -> void:
 	if not _dims.has(axis):
 		push_warning("DimMap.advance_axis: unknown axis %s" % axis)
 		return
+	var before := _dims.duplicate()
 	var cur: int = _dims[axis]
 	var taken := {}
 	if enforce_distinct:
@@ -78,8 +81,15 @@ func advance_axis(axis: StringName, dir := 1) -> void:
 		var candidate := posmod(cur + dir * i, dim_count)
 		if candidate != cur and not taken.has(candidate):
 			_dims[axis] = candidate
-			changed.emit()
+			_emit_if_changed(before)
 			return
 	# no distinct slot anywhere: degrade to a plain step (duplicate axis).
 	_dims[axis] = posmod(cur + dir, dim_count)
-	changed.emit()
+	_emit_if_changed(before)
+
+
+## Emit `changed` only if the mapping actually moved (identity wraps are
+## silent: no signal, no rebuild, no orbit refit downstream).
+func _emit_if_changed(before: Dictionary) -> void:
+	if _dims.hash() != before.hash():
+		changed.emit()
