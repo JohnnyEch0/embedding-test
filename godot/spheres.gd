@@ -23,6 +23,7 @@ var metadata: Dictionary = {}
 # DimMap. See dim_map.gd.
 var dim_count := 3
 var dim_axes := Vector3i(0, 1, 2)
+var _mismatch_warned := false  # one clamp warning per rebuild, not per star
 
 # for automation
 signal stars_rebuilt(box: AABB, cone: Dictionary)
@@ -93,6 +94,7 @@ func create_stars_from_data(
 		show_poem_star := false,
 		show_line_stars := false,
 		show_verse_stars := false) -> void:
+	_mismatch_warned = false
 	clear_stars()
 
 	var wanted := {}
@@ -163,6 +165,9 @@ func _make_star_data(label: String, embedding: Array, kind := &"word") -> EmbSta
 	sd.kind = kind
 	# clamp indices against data/metadata disagreement instead of crashing
 	var d := embedding.size()
+	if d != dim_count and not _mismatch_warned:
+		push_warning("embedding size %d != metadata dim_count %d: clamping indices" % [d, dim_count])
+		_mismatch_warned = true
 	var ix := mini(dim_axes.x, d - 1)
 	var iy := mini(dim_axes.y, d - 1)
 	var iz := mini(dim_axes.z, d - 1)
@@ -353,8 +358,14 @@ const LABEL_RANGE_OFF := 5.0
 var debug_nodes: Dictionary = {}    # StringName -> Array[Node3D]
 var debug_on: Dictionary = {}       # StringName -> bool, survives rebuilds
 var debug_setters: Dictionary = {}  # StringName -> Callable(node, on); default: visible
+var _warned_debug_keys: Dictionary = {}  # StringName -> already warned (no InputMap action)
 
 func register_debug(key: StringName, node: Node3D, setter := Callable()) -> void:
+	# convention: every debug key must have a same-named input action
+	# (main.gd dispatches via InputMap). Warn once at registration time.
+	if not _warned_debug_keys.has(key) and not InputMap.has_action(key):
+		push_warning("register_debug: no input action named '%s' -- key will never be toggleable" % key)
+		_warned_debug_keys[key] = true
 	if setter.is_valid():
 		debug_setters[key] = setter
 	debug_nodes.get_or_add(key, []).append(node)
