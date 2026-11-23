@@ -3,7 +3,7 @@
 Protocol:
 - A card moves column in the same commit that changes its state.
 - Starting a task → card to **In Progress**; the completion commit flips it to **Done** with its hash.
-- Card numbers are assigned once and never re-used. Next free number: **18**.
+- Card numbers are assigned once and never re-used. Next free number: **19**.
 - Cards carry branch/commit refs where they exist.
 
 ## Backlog
@@ -23,6 +23,8 @@ Protocol:
 
 
 ## Done
+
+- [18] Manual dimension switching: `DimMap` (godot/dim_map.gd) X/Y/Z mapping, R = next 3 dims, F/G/H = per-axis (+shift reverse), distinct-skip (export `enforce_distinct`, default on), dims HUD, headless test (godot/test_dim_map.gd) — `e8b1c31`, `5e827e4`, `79ec0a2`, `77e6e8b`.
 
 - [16] New poems (10) + `dimension_reduction.py` step registry (center/abtt/pca); d32 godot data set — `6beb2b5`, `5e5cf8f`.
 - [4] Authorship metadata via per-poem YAML frontmatter — `parse_frontmatter()`/`make_metadata()` in `api_gemma.py`, `poem_texts` strips frontmatter (`14125de`); all `poem_emb/` data regenerated with author/title — `6b7af2c`, `5e5cf8f`.
