@@ -3,10 +3,12 @@
 Protocol:
 - A card moves column in the same commit that changes its state.
 - Starting a task → card to **In Progress**; the completion commit flips it to **Done** with its hash.
-- Card numbers are assigned once and never re-used. Next free number: **19**.
+- Card numbers are assigned once and never re-used. Next free number: **20**.
 - Cards carry branch/commit refs where they exist.
 
 ## Backlog
+
+- [19] Startup call cleanup: `create_stars_from_data([1,2,3,4,5,6,7,8], [], true, true)` in main.gd `_ready` — boolean-trap args, hardcoded line indices, ignores the exported `show_*` flags (startup force-shows poem+line stars). Behavior change: decide desired startup visuals first. Deferred from PR #1 review.
 
 - [2] Rebuild `dim_hunt_app.py` on the new format — early-stage visualizer, broken since the typed refactor (`0b67de5`), low priority; revisit only if it still matters.
 - [7] Remove deprecated JSONL path entirely (`--jsonl` flag, `to_jsonl`/`from_jsonl`, JSONL tests) — requires [2] and [3] migrated first.
