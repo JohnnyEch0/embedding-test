@@ -21,6 +21,7 @@ func _init() -> void:
 	_test_axis_advance_duplicates_allowed()
 	_test_degenerate_dim_counts()
 	_test_unknown_axis_is_noop()
+	_test_identity_wraps()
 	_test_changed_signal()
 	print("%d checks, %d failures" % [_checks, _failures])
 	quit(1 if _failures > 0 else 0)
@@ -123,6 +124,29 @@ func _test_degenerate_dim_counts() -> void:
 	var m2 = DimMapScript.new(0)
 	_expect(m2.dim_count == 1, "dim_count clamped to >= 1")
 	_expect(_xyz(m2) == [0, 0, 0], "d=1: mapping collapses to all-zero")
+
+	var m3 = DimMapScript.new(2)
+	_expect(m3.dim_count == 2, "d=2: dim_count kept")
+	_expect(_xyz(m3) == [0, 1, 1], "d=2: z collapses onto y")
+
+
+func _test_identity_wraps() -> void:
+	# a full-cycle window wrap maps onto itself: no state change, no signal,
+	# no pointless rebuild + orbit refit downstream
+	var m := _make(3)
+	var count := [0]
+	m.changed.connect(func() -> void: count[0] += 1)
+	m.advance_window()
+	m.advance_window(-1)
+	_expect(_xyz(m) == [0, 1, 2], "d=3: window wrap is the identity mapping")
+	_expect(count[0] == 0, "identity window wrap emits nothing")
+
+	var m1 = DimMapScript.new(1)
+	var count1 := [0]
+	m1.changed.connect(func() -> void: count1[0] += 1)
+	m1.advance_axis(&"x")
+	m1.advance_window()
+	_expect(count1[0] == 0, "d=1: every advance is the identity, emits nothing")
 
 
 func _test_unknown_axis_is_noop() -> void:
