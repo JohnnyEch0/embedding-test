@@ -3,7 +3,8 @@ extends Node3D
 
 
 var cur_line := []
-
+# === configuration
+@export var normal_look:ViewSetting
 # === automation
 @export var automation := false
 @export var show_line_stars := false
