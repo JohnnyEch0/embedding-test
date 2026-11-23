@@ -42,6 +42,7 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("exit"):
 		get_tree().quit()
+		return
 	if event.is_action_pressed("toggle_automation"):
 		set_automation(not automation)
 		return
@@ -51,6 +52,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	
 	if event.is_action_pressed("next_line"):
 		_advance_line()
+		return
 
 	# --- dimension switching ---
 	if event.is_action_pressed("next_dims"):
@@ -111,6 +113,7 @@ func _setup_dim_map() -> void:
 
 func _on_dims_changed() -> void:
 	stars_node.dim_axes = dim_map.axes_vector()
+	_update_dims_hud()
 	_rebuild()  # triggers stars_rebuilt -> orbit.fit
 
 func _make_dims_hud() -> void:
