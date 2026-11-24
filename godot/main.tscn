@@ -6,7 +6,7 @@
 [ext_resource type="Shader" uid="uid://d0ghiwya5633m" path="res://space.gdshader" id="2_1bvp3"]
 [ext_resource type="Script" uid="uid://db1ckkjyudw5q" path="res://auto_orbit.gd" id="5_lquwl"]
 [ext_resource type="Script" uid="uid://cufxrrl55ss6n" path="res://controlls_label.gd" id="6_7mycd"]
-[ext_resource type="Script" path="res://input_handler.gd" id="7_input"]
+[ext_resource type="Script" uid="uid://bq2074vapvpdr" path="res://input_handler.gd" id="7_input"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_h2yge"]
 shader = ExtResource("2_1bvp3")
@@ -61,7 +61,7 @@ script = ExtResource("5_lquwl")
 player = NodePath("../CharacterBody3D")
 camera = NodePath("../CharacterBody3D/Camera3D")
 
-[node name="InputHandler" type="Node" parent="."]
+[node name="InputHandler" type="Node" parent="." unique_id=343060145]
 script = ExtResource("7_input")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=118139904]
