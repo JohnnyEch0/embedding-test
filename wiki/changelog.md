@@ -26,8 +26,12 @@ context, `KANBAN.md`.
   dispatch (`1e9dc47`), headless dispatch tests added (`7eef1be`), dim
   handshake assert in `main.gd` (`c8242df`).
 - DimMap `get_dim` warns once on unknown axis (`3f7787d`, card [21]).
-- DimsHud extraction carded as [22]; startup line set `[0..7]` confirmed
+- **DimsHud extracted from `main.gd`** (card [22], `d639f74`/`480225b`):
+  `godot/dims_hud.gd`, a bound observer of `DimMap` (`bind()` tracks
+  `changed`); layout in `main.tscn`; headless test `test_dims_hud.gd` —
+  completes the model/input/view split. Startup line set `[0..7]` confirmed
   intentional (card [19]).
+- `GLOSSARY.md` added (LAPMAN — the reporting-budget term).
 
 ## 2026-11-23
 
