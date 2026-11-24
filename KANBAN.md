@@ -3,10 +3,12 @@
 Protocol:
 - A card moves column in the same commit that changes its state.
 - Starting a task → card to **In Progress**; the completion commit flips it to **Done** with its hash.
-- Card numbers are assigned once and never re-used. Next free number: **22**.
+- Card numbers are assigned once and never re-used. Next free number: **23**.
 - Cards carry branch/commit refs where they exist.
 
 ## Backlog
+
+- [22] Extract `DimsHud` from main.gd: a `Label` node on `CanvasLayer` in `main.tscn` with its own script (`godot/dims_hud.gd`), connected to `dim_map.changed` (and initialized once) — owns its own anchors/offset/style and the `"dims  X:%d  Y:%d  Z:%d  (of %d)"` readout. main.gd keeps only the wiring; `_make_dims_hud`/`_update_dims_hud` deleted. Completes the model/input/view split (DimMap / InputHandler / DimsHud).
 
 - [21] DimMap direction enum: replace bare ±1 ints on `advance_window`/`advance_axis` and InputHandler's dim signals with a named const/enum pair (PR #2 review, primitive obsession). Unknown-axis behavior now unified: `get_dim` warns once (was silent 0).
 
