@@ -7,6 +7,7 @@
 [ext_resource type="Script" uid="uid://db1ckkjyudw5q" path="res://auto_orbit.gd" id="5_lquwl"]
 [ext_resource type="Script" uid="uid://cufxrrl55ss6n" path="res://controlls_label.gd" id="6_7mycd"]
 [ext_resource type="Script" path="res://input_handler.gd" id="7_input"]
+[ext_resource type="Script" path="res://dims_hud.gd" id="8_dimshud"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_h2yge"]
 shader = ExtResource("2_1bvp3")
@@ -27,6 +28,9 @@ volumetric_fog_density = 0.01
 volumetric_fog_sky_affect = 0.2
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_aa68f"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_dimshud"]
+font_color = Color(1, 1, 1, 0.7)
 
 [sub_resource type="LabelSettings" id="LabelSettings_lquwl"]
 font_color = Color(1, 1, 1, 0.45882353)
@@ -65,6 +69,14 @@ camera = NodePath("../CharacterBody3D/Camera3D")
 script = ExtResource("7_input")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=118139904]
+
+[node name="DimsHud" type="Label" parent="CanvasLayer"]
+offset_left = 12.0
+offset_top = 12.0
+mouse_filter = 2
+text = "dims  X:0  Y:1  Z:2  (of 3)"
+label_settings = SubResource("LabelSettings_dimshud")
+script = ExtResource("8_dimshud")
 
 [node name="Label" type="Label" parent="CanvasLayer" unique_id=1489413485]
 offset_left = 913.0

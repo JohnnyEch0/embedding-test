@@ -1,6 +1,5 @@
 extends Node3D
 @onready var stars_node = $"Spheres"
-@onready var canvas := $"CanvasLayer"
 
 
 var cur_line := [0]
@@ -11,7 +10,7 @@ var cur_line := [0]
 # === dimension switching (state + semantics in dim_map.gd)
 @export var enforce_distinct := true
 var dim_map: DimMap
-var dims_hud: Label
+@onready var dims_hud: DimsHud = $"CanvasLayer/DimsHud"
 
 # === automation
 @export var automation := false
@@ -82,28 +81,8 @@ func _setup_dim_map() -> void:
 	dim_map = DimMap.new(stars_node.dim_count, enforce_distinct)
 	dim_map.changed.connect(_on_dims_changed)
 	stars_node.dim_axes = dim_map.axes_vector()
-	_make_dims_hud()
+	dims_hud.bind(dim_map)
 
 func _on_dims_changed() -> void:
 	stars_node.dim_axes = dim_map.axes_vector()
-	_update_dims_hud()
 	_rebuild() # triggers stars_rebuilt -> orbit.fit
-
-func _make_dims_hud() -> void:
-	# built in code: always-visible mapping readout, independent of the
-	# toggleable controls label
-	dims_hud = Label.new()
-	dims_hud.name = "DimsHud"
-	dims_hud.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
-	dims_hud.offset_left = 12.0
-	dims_hud.offset_top = 12.0
-	dims_hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var settings := LabelSettings.new()
-	settings.font_color = Color(1, 1, 1, 0.7)
-	dims_hud.label_settings = settings
-	canvas.add_child(dims_hud)
-	_update_dims_hud()
-
-func _update_dims_hud() -> void:
-	var v := dim_map.axes_vector()
-	dims_hud.text = "dims  X:%d  Y:%d  Z:%d  (of %d)" % [v.x, v.y, v.z, dim_map.dim_count]
