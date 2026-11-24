@@ -31,6 +31,7 @@ var dim_count: int          # total embedding dimensions; clamped to >= 1
 var enforce_distinct: bool  # true: no dimension on two axes (where possible)
 
 var _dims := {&"x": 0, &"y": 1, &"z": 2}
+var _warned_axes := {} # StringName -> already warned (get_dim unknown axis)
 
 
 func _init(count: int, distinct := true) -> void:
@@ -41,7 +42,11 @@ func _init(count: int, distinct := true) -> void:
 
 
 ## Dimension index currently shown on the given axis (&"x"/&"y"/&"z").
+## Unknown axes warn once and return 0 -- same policy as advance_axis.
 func get_dim(axis: StringName) -> int:
+	if not _dims.has(axis) and not _warned_axes.has(axis):
+		push_warning("DimMap.get_dim: unknown axis %s, returning 0" % axis)
+		_warned_axes[axis] = true
 	return _dims.get(axis, 0)
 
 

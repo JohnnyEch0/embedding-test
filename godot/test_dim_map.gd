@@ -153,6 +153,9 @@ func _test_unknown_axis_is_noop() -> void:
 	var m := _make(32)
 	m.advance_axis(&"q")  # pushes a warning; must not crash or change state
 	_expect(_xyz(m) == [0, 1, 2], "unknown axis: no state change")
+	# get_dim mirrors advance_axis's policy: warn once, degrade to 0
+	_expect(m.get_dim(&"q") == 0, "unknown axis get_dim returns 0 (warns once)")
+	_expect(m.get_dim(&"x") == 0, "known axis unaffected")
 
 
 func _test_changed_signal() -> void:
