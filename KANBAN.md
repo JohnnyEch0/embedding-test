@@ -12,7 +12,7 @@ Protocol:
 
 - [21] DimMap direction enum: replace bare ±1 ints on `advance_window`/`advance_axis` and InputHandler's dim signals with a named const/enum pair (PR #2 review, primitive obsession). Unknown-axis behavior now unified: `get_dim` warns once (was silent 0).
 
-- [19] Startup call cleanup (rest): flag injection fixed in `aef8084` (`_rebuild()` passes the exported `show_*` flags). Remaining: boolean-trap args on `create_stars_from_data` (three trailing bools), hardcoded initial `cur_line := [0..7]`, dead commented-out `create_stars_from_data` calls in spheres.gd `_ready`. Deferred from PR #1 review.
+- [19] Startup call cleanup (rest): flag injection fixed in `aef8084` (`_rebuild()` passes the exported `show_*` flags); initial `cur_line := [0..7]` is intentional (wanted startup line set — keep, not debt). Remaining: boolean-trap args on `create_stars_from_data` (three trailing bools), dead commented-out `create_stars_from_data` calls in spheres.gd `_ready`. Deferred from PR #1 review.
 
 - [2] Decide fate of `dim_hunt_app.py`: no data source (legacy JSONL loader removed, `PoemEmbeddings.load()` loader unimplemented — raises `NotImplementedError`). Rebuild on the new format or delete; also gates card [7]. Low priority; revisit only if it still matters.
 - [7] Remove deprecated JSONL path entirely (`--jsonl` flag, `to_jsonl`/`from_jsonl`, JSONL tests) — requires [2] decided first ([3] done).

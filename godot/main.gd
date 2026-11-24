@@ -3,7 +3,7 @@ extends Node3D
 @onready var canvas := $"CanvasLayer"
 
 
-var cur_line := [0]
+var cur_line := [0,1,2,3,4,5,6,7]
 # === configuration
 # @export var normal_look: ViewSetting   # will be added later
 
