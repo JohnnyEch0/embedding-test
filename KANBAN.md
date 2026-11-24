@@ -22,11 +22,12 @@ Protocol:
 
 ## In Progress
 
-- [22] Extract `DimsHud` node (`godot/dims_hud.gd`) from main.gd: the code-built dims readout Label becomes a bound observer of `DimMap` (`bind(dim_map)` → tracks `changed`); main.gd is wiring-only again, layout moves to main.tscn (deferred from the [20] InputHandler pattern).
 
 
 
 ## Done
+
+- [22] Extract `DimsHud` node (`godot/dims_hud.gd`) from main.gd: bound observer of `DimMap` (`bind()` tracks `changed`), layout/font moved to main.tscn, headless test `test_dims_hud.gd`, main.gd wiring-only — `d639f74`, `480225b`.
 
 - [20] Extract `InputHandler` node (`godot/input_handler.gd`) from `main.gd`: raw input → semantic signals (`next_line_requested`, `dims_window_requested(dir)`, `dim_axis_requested(axis, dir)`, `automation_toggled`, `user_input_detected`, `debug_toggled`); `main.gd` only connects — `ea7c179`.
 
