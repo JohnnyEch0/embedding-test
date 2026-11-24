@@ -33,7 +33,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("exit"):
 		get_tree().quit()
 		return
-	if event.is_action_pressed("toggle_automation"):
+	# toggle_automation has no InputMap action yet; has_action guard keeps
+	# the engine from logging an error on every event
+	if InputMap.has_action(&"toggle_automation") \
+			and event.is_action_pressed("toggle_automation"):
 		automation_toggled.emit()
 		return
 	if _is_user_input(event):
@@ -44,32 +47,34 @@ func _unhandled_input(event: InputEvent) -> void:
 		next_line_requested.emit()
 		return
 
-	# --- dimension switching: windows ---
-	if event.is_action_pressed("next_dims"):
+	# --- dimension switching: windows. exact_match: without it, Shift+R
+	# loosely matches next_dims (checked first) and prev_dims is unreachable
+	# (pre-existing bug in main.gd's dispatch order) ---
+	if event.is_action_pressed("next_dims", false, true):
 		dims_window_requested.emit(1)
 		return
-	if event.is_action_pressed("prev_dims"):
+	if event.is_action_pressed("prev_dims", false, true):
 		dims_window_requested.emit(-1)
 		return
 
 	# --- dimension switching: single axes, typed literals (no positional
-	# [axis, dir] pairs) ---
-	if event.is_action_pressed(&"dim_x_plus"):
+	# [axis, dir] pairs); exact_match for the same shift reason ---
+	if event.is_action_pressed(&"dim_x_plus", false, true):
 		dim_axis_requested.emit(&"x", 1)
 		return
-	if event.is_action_pressed(&"dim_x_minus"):
+	if event.is_action_pressed(&"dim_x_minus", false, true):
 		dim_axis_requested.emit(&"x", -1)
 		return
-	if event.is_action_pressed(&"dim_y_plus"):
+	if event.is_action_pressed(&"dim_y_plus", false, true):
 		dim_axis_requested.emit(&"y", 1)
 		return
-	if event.is_action_pressed(&"dim_y_minus"):
+	if event.is_action_pressed(&"dim_y_minus", false, true):
 		dim_axis_requested.emit(&"y", -1)
 		return
-	if event.is_action_pressed(&"dim_z_plus"):
+	if event.is_action_pressed(&"dim_z_plus", false, true):
 		dim_axis_requested.emit(&"z", 1)
 		return
-	if event.is_action_pressed(&"dim_z_minus"):
+	if event.is_action_pressed(&"dim_z_minus", false, true):
 		dim_axis_requested.emit(&"z", -1)
 		return
 
