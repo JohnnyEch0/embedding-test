@@ -3,10 +3,12 @@
 Protocol:
 - A card moves column in the same commit that changes its state.
 - Starting a task → card to **In Progress**; the completion commit flips it to **Done** with its hash.
-- Card numbers are assigned once and never re-used. Next free number: **23**.
+- Card numbers are assigned once and never re-used. Next free number: **24**.
 - Cards carry branch/commit refs where they exist.
 
 ## Backlog
+
+- [23] Godot `line_range` off-by-one: `spheres.gd` consumes `verses[].line_range` as inclusive (`range(r[0], r[1] + 1)`, `# ASSUMED inclusive`, plus the inclusive verse hit test) while `api_gemma.py`/`data.py` write exclusive ends — verse-related marking swallows the first line of the next verse. Writer convention (exclusive, `[start, end)`) is the data contract; fix the consumer. Documented in `wiki/data-format.md` (Known consumer bug).
 
 - [22] Extract `DimsHud` from main.gd: a `Label` node on `CanvasLayer` in `main.tscn` with its own script (`godot/dims_hud.gd`), connected to `dim_map.changed` (and initialized once) — owns its own anchors/offset/style and the `"dims  X:%d  Y:%d  Z:%d  (of %d)"` readout. main.gd keeps only the wiring; `_make_dims_hud`/`_update_dims_hud` deleted. Completes the model/input/view split (DimMap / InputHandler / DimsHud).
 
