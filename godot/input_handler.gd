@@ -9,6 +9,11 @@ extends Node
 ## Dispatch order mirrors the original main.gd _unhandled_input:
 ## exit -> toggle_automation -> user input -> next_line -> dim windows ->
 ## dim axes -> debug overlays.
+##
+## User input terminates dispatch: a takeover event never also advances a
+## line or toggles a debug overlay. (The original returned only under
+## automation; with the current keymap no move key is double-mapped, so the
+## observable behavior is identical.)
 
 signal next_line_requested
 signal dims_window_requested(dir: int)
@@ -16,13 +21,6 @@ signal dim_axis_requested(axis: StringName, dir: int)
 signal automation_toggled
 signal user_input_detected
 signal debug_toggled(key: StringName)
-
-## input action -> [axis, direction]
-const AXIS_ACTIONS := {
-	&"dim_x_plus": [&"x", 1], &"dim_x_minus": [&"x", -1],
-	&"dim_y_plus": [&"y", 1], &"dim_y_minus": [&"y", -1],
-	&"dim_z_plus": [&"z", 1], &"dim_z_minus": [&"z", -1],
-}
 
 ## Movement keys count as user input (automation takeover).
 const MOVE_ACTIONS: Array[StringName] = [
@@ -40,23 +38,40 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if _is_user_input(event):
 		user_input_detected.emit()
+		return
 
 	if event.is_action_pressed("next_line"):
 		next_line_requested.emit()
 		return
 
-	# --- dimension switching ---
+	# --- dimension switching: windows ---
 	if event.is_action_pressed("next_dims"):
 		dims_window_requested.emit(1)
 		return
 	if event.is_action_pressed("prev_dims"):
 		dims_window_requested.emit(-1)
 		return
-	for action: StringName in AXIS_ACTIONS:
-		if event.is_action_pressed(action):
-			var spec: Array = AXIS_ACTIONS[action]
-			dim_axis_requested.emit(spec[0], spec[1])
-			return
+
+	# --- dimension switching: single axes, typed literals (no positional
+	# [axis, dir] pairs) ---
+	if event.is_action_pressed(&"dim_x_plus"):
+		dim_axis_requested.emit(&"x", 1)
+		return
+	if event.is_action_pressed(&"dim_x_minus"):
+		dim_axis_requested.emit(&"x", -1)
+		return
+	if event.is_action_pressed(&"dim_y_plus"):
+		dim_axis_requested.emit(&"y", 1)
+		return
+	if event.is_action_pressed(&"dim_y_minus"):
+		dim_axis_requested.emit(&"y", -1)
+		return
+	if event.is_action_pressed(&"dim_z_plus"):
+		dim_axis_requested.emit(&"z", 1)
+		return
+	if event.is_action_pressed(&"dim_z_minus"):
+		dim_axis_requested.emit(&"z", -1)
+		return
 
 	# Debug overlays: input action names match the debug registry keys,
 	# so dispatch via InputMap directly. Receiving side filters via
