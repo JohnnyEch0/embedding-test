@@ -5,7 +5,7 @@ extends Node3D
 
 var cur_line := [0]
 # === configuration
-@export var normal_look: ViewSetting
+# @export var normal_look: ViewSetting   # will be added later
 
 
 # === dimension switching (state + semantics in dim_map.gd)
@@ -38,7 +38,6 @@ func _ready() -> void:
 	set_automation(automation)
 	_rebuild()
 	_setup_dim_map()
-	stars_node.create_stars_from_data([1, 2, 3, 4, 5, 6, 7, 8], [], true, true)
 	pass # Replace with function body.
 
 

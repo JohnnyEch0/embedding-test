@@ -4,13 +4,8 @@
 [ext_resource type="Script" uid="uid://ct1hpf3weoa8x" path="res://main.gd" id="1_h2yge"]
 [ext_resource type="Script" uid="uid://t7cwwx4rwxi0" path="res://spheres.gd" id="1_ig7tw"]
 [ext_resource type="Shader" uid="uid://d0ghiwya5633m" path="res://space.gdshader" id="2_1bvp3"]
-[ext_resource type="Script" uid="uid://bpcs62kqohalo" path="res://scripts/view_settings.gd" id="2_272bh"]
 [ext_resource type="Script" uid="uid://db1ckkjyudw5q" path="res://auto_orbit.gd" id="5_lquwl"]
 [ext_resource type="Script" uid="uid://cufxrrl55ss6n" path="res://controlls_label.gd" id="6_7mycd"]
-
-[sub_resource type="Resource" id="Resource_7mycd"]
-script = ExtResource("2_272bh")
-metadata/_custom_type_script = "uid://bpcs62kqohalo"
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_h2yge"]
 shader = ExtResource("2_1bvp3")
@@ -37,7 +32,6 @@ font_color = Color(1, 1, 1, 0.45882353)
 
 [node name="main" type="Node3D" unique_id=475395517]
 script = ExtResource("1_h2yge")
-normal_look = SubResource("Resource_7mycd")
 automation = true
 show_line_stars = true
 show_poem_stars = true
