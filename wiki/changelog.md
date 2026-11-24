@@ -9,6 +9,11 @@ tags: [changelog]
 
 Notable changes only. For the full commit history, see `git log`.
 
+## 2026-11-24
+
+- Extracted `DimsHud` (dims readout Label) from `main.gd` into `godot/dims_hud.gd` — a bound observer of `DimMap`, with layout in `main.tscn`; headless test `test_dims_hud.gd`.
+- Added `GLOSSARY.md` (LAPMAN).
+
 ## 2026-11-17
 
 - Added `api_gemma.py` — batch-embed words from .md poems via ScaDS AI API.

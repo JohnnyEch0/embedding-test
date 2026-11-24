@@ -12,24 +12,26 @@ Protocol:
 
 - [21] DimMap direction enum: replace bare ±1 ints on `advance_window`/`advance_axis` and InputHandler's dim signals with a named const/enum pair (PR #2 review, primitive obsession). Unknown-axis behavior now unified: `get_dim` warns once (was silent 0).
 
-- [19] Startup call cleanup (rest): flag injection fixed in `aef8084` (`_rebuild()` passes the exported `show_*` flags); initial `cur_line := [0..7]` is intentional (wanted startup line set — keep, not debt). Remaining: boolean-trap args on `create_stars_from_data` (three trailing bools), dead commented-out `create_stars_from_data` calls in spheres.gd `_ready`. Deferred from PR #1 review.
 
 - [2] Decide fate of `dim_hunt_app.py`: no data source (legacy JSONL loader removed, `PoemEmbeddings.load()` loader unimplemented — raises `NotImplementedError`). Rebuild on the new format or delete; also gates card [7]. Low priority; revisit only if it still matters.
 - [7] Remove deprecated JSONL path entirely (`--jsonl` flag, `to_jsonl`/`from_jsonl`, JSONL tests) — requires [2] decided first ([3] done).
 - [8] Godot visualization upgrade: line-level star layout (PCA-2D or 3D slice of the 128-dim line embeddings) instead of word-level line-0-only.
+- [17] Dim-reduction stage renaming: `dimension_reduction.py` should apply the `d<N>` tag rename (d128→d32) to output filenames itself — done manually in `5e5cf8f`.
+- [1] Dim-hunt stage: dimension analysis (near-constant dims, redundant pairs, spread/offset ranking) over `PoemEmbeddings.load()` output — the unprocessed → analyzed pipeline step.
 
 ## To Do
 
-- [17] Dim-reduction stage renaming: `dimension_reduction.py` should apply the `d<N>` tag rename (d128→d32) to output filenames itself — done manually in `5e5cf8f`.
-- [1] Dim-hunt stage: dimension analysis (near-constant dims, redundant pairs, spread/offset ranking) over `PoemEmbeddings.load()` output — the unprocessed → analyzed pipeline step. Split off from [3].
 
 ## In Progress
 
 
 
+
 ## Done
 
-- [20] Extract `InputHandler` node (`godot/input_handler.gd`) from `main.gd`: raw input → semantic signals (`next_line_requested`, `dims_window_requested(dir)`, `dim_axis_requested(axis, dir)`, `automation_toggled`, `user_input_detected`, `debug_toggled`); `main.gd` only connects — `ea7c179`, `937b924`, `1e9dc47`, `7eef1be`, `c8242df`.
+- [22] Extract `DimsHud` node (`godot/dims_hud.gd`) from main.gd: bound observer of `DimMap` (`bind()` tracks `changed`), layout/font moved to main.tscn, headless test `test_dims_hud.gd`, main.gd wiring-only — `d639f74`, `480225b`.
+
+- [20] Extract `InputHandler` node (`godot/input_handler.gd`) from `main.gd`: raw input → semantic signals (`next_line_requested`, `dims_window_requested(dir)`, `dim_axis_requested(axis, dir)`, `automation_toggled`, `user_input_detected`, `debug_toggled`); `main.gd` only connects — `ea7c179`.
 
 - [18] Manual dimension switching: `DimMap` (godot/dim_map.gd) X/Y/Z mapping, R = next 3 dims, F/G/H = per-axis (+shift reverse), distinct-skip (export `enforce_distinct`, default on), dims HUD, headless test (godot/test_dim_map.gd) — `e8b1c31`, `5e827e4`, `79ec0a2`, `77e6e8b`.
 
