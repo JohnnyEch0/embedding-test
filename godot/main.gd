@@ -24,7 +24,6 @@ var dims_hud: Label
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	assert(is_instance_of(cur_line, TYPE_ARRAY))
 	orbit.rotation_completed.connect(_advance_line)
 	stars_node.stars_rebuilt.connect(orbit.fit)
 	orbit.fit(stars_node.last_box, stars_node.last_cone) # Spheres' _ready already ran
@@ -64,9 +63,7 @@ func set_automation(on: bool) -> void:
 	player.manual = not on
 
 func _advance_line() -> void:
-	assert(is_instance_of(cur_line, TYPE_ARRAY))
 	cur_line = [wrapi(cur_line[0] + 1, 0, stars_node.line_count())]
-	assert(is_instance_of(cur_line, TYPE_ARRAY))
 	_rebuild() # triggers stars_rebuilt -> orbit.fit
 
 func _rebuild() -> void:
@@ -78,6 +75,10 @@ func _rebuild() -> void:
 
 func _setup_dim_map() -> void:
 	# Spheres' _ready ran first, so its dim_count (from data metadata) is set.
+	# Wiring invariant, not data validation: a failed Spheres data load
+	# leaves dim_count at its default 3 and every dim mapping would lie.
+	assert(stars_node.dim_count > 3,
+		"dim handshake failed: Spheres data not loaded (dim_count=%d)" % stars_node.dim_count)
 	dim_map = DimMap.new(stars_node.dim_count, enforce_distinct)
 	dim_map.changed.connect(_on_dims_changed)
 	stars_node.dim_axes = dim_map.axes_vector()
