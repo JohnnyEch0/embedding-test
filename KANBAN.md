@@ -3,14 +3,13 @@
 Protocol:
 - A card moves column in the same commit that changes its state.
 - Starting a task → card to **In Progress**; the completion commit flips it to **Done** with its hash.
-- Card numbers are assigned once and never re-used. Next free number: **22**.
+- Card numbers are assigned once and never re-used. Next free number: **23**.
 - Cards carry branch/commit refs where they exist.
 
 ## Backlog
 
 - [21] DimMap direction enum: replace bare ±1 ints on `advance_window`/`advance_axis` and InputHandler's dim signals with a named const/enum pair (PR #2 review, primitive obsession). Unknown-axis behavior now unified: `get_dim` warns once (was silent 0).
 
-- [19] Startup call cleanup: `create_stars_from_data([1,2,3,4,5,6,7,8], [], true, true)` in main.gd `_ready` — boolean-trap args, hardcoded line indices, ignores the exported `show_*` flags (startup force-shows poem+line stars). Behavior change: decide desired startup visuals first. Deferred from PR #1 review.
 
 - [2] Rebuild `dim_hunt_app.py` on the new format — early-stage visualizer, broken since the typed refactor (`0b67de5`), low priority; revisit only if it still matters.
 - [7] Remove deprecated JSONL path entirely (`--jsonl` flag, `to_jsonl`/`from_jsonl`, JSONL tests) — requires [2] and [3] migrated first.
@@ -20,9 +19,10 @@ Protocol:
 
 - [17] Dim-reduction stage renaming: `dimension_reduction.py` should apply the `d<N>` tag rename (d128→d32) to output filenames itself — done manually in `5e5cf8f`.
 - [1] Dim-hunt stage: dimension analysis (near-constant dims, redundant pairs, spread/offset ranking) over `PoemEmbeddings.load()` output — the unprocessed → analyzed pipeline step.
-- [3] Regenerate godot `data/sample*.json` from `poem_emb/eg2_d128_wild-geese_mary-oliver.json` (+ dim-analysis output); define godot schema together with `spheres.gd` migration (still reads legacy `embedding_dict`).
 
 ## In Progress
+
+- [22] Extract `DimsHud` node (`godot/dims_hud.gd`) from main.gd: the code-built dims readout Label becomes a bound observer of `DimMap` (`bind(dim_map)` → tracks `changed`); main.gd is wiring-only again, layout moves to main.tscn (deferred from the [20] InputHandler pattern).
 
 
 
