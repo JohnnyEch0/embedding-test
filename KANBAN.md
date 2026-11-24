@@ -3,7 +3,7 @@
 Protocol:
 - A card moves column in the same commit that changes its state.
 - Starting a task → card to **In Progress**; the completion commit flips it to **Done** with its hash.
-- Card numbers are assigned once and never re-used. Next free number: **20**.
+- Card numbers are assigned once and never re-used. Next free number: **21**.
 - Cards carry branch/commit refs where they exist.
 
 ## Backlog
@@ -25,6 +25,8 @@ Protocol:
 
 
 ## Done
+
+- [20] Extract `InputHandler` node (`godot/input_handler.gd`) from `main.gd`: raw input → semantic signals (`next_line_requested`, `dims_window_requested(dir)`, `dim_axis_requested(axis, dir)`, `automation_toggled`, `user_input_detected`, `debug_toggled`); `main.gd` only connects — `ea7c179`.
 
 - [18] Manual dimension switching: `DimMap` (godot/dim_map.gd) X/Y/Z mapping, R = next 3 dims, F/G/H = per-axis (+shift reverse), distinct-skip (export `enforce_distinct`, default on), dims HUD, headless test (godot/test_dim_map.gd) — `e8b1c31`, `5e827e4`, `79ec0a2`, `77e6e8b`.
 
