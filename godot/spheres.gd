@@ -18,6 +18,13 @@ var _verses: Array = []
 var _poem: Dictionary = {}
 var metadata: Dictionary = {}
 
+# dimension projection: which embedding indices are shown on X/Y/Z.
+# dim_count comes from the data metadata; dim_axes is steered by main.gd's
+# DimMap. See dim_map.gd.
+var dim_count := 3
+var dim_axes := Vector3i(0, 1, 2)
+var _mismatch_warned := false # one clamp warning per rebuild, not per star
+
 # for automation
 signal stars_rebuilt(box: AABB, cone: Dictionary)
 var last_box := AABB()
@@ -25,9 +32,9 @@ var last_cone: Dictionary = {}
 
 # style
 const KIND_STYLE := {
-	&"line":  {"color": Color.ORANGE,  "scale": 2.0},
+	&"line": {"color": Color.ORANGE, "scale": 2.0},
 	&"verse": {"color": Color.MAGENTA, "scale": 5.0},
-	&"poem":  {"color": Color.WHITE,   "scale": 8.0},
+	&"poem": {"color": Color.WHITE, "scale": 8.0},
 }
 
 
@@ -72,6 +79,7 @@ func _ready() -> void:
 	_lines = data.get("lines", [])
 	_verses = data.get("verses", [])
 	_poem = data.get("poem", {})
+	dim_count = int(metadata.get("dimensions", _first_embedding_size()))
 	if _lines.is_empty():
 		push_error("No lines in JSON data")
 		return
@@ -86,11 +94,13 @@ func create_stars_from_data(
 		show_poem_star := false,
 		show_line_stars := false,
 		show_verse_stars := false) -> void:
+	_mismatch_warned = false
 	clear_stars()
 
 	var wanted := {}
 	for i in line_indices:
-		wanted[int(i)] = true
+		assert(is_instance_of(i, TYPE_INT))
+		wanted[i] = true
 	var verses_used: Array[int] = []
 	for vi in verse_indices:
 		if vi < 0 or vi >= _verses.size():
@@ -99,7 +109,7 @@ func create_stars_from_data(
 		verses_used.append(int(vi))
 		var r: Array = _verses[vi].get("line_range", [])
 		if r.size() == 2:
-			for li in range(int(r[0]), int(r[1]) + 1):  # ASSUMED inclusive
+			for li in range(int(r[0]), int(r[1]) + 1): # ASSUMED inclusive
 				wanted[li] = true
 	var indices := wanted.keys()
 	indices.sort()
@@ -134,20 +144,36 @@ func create_stars_from_data(
 				extras.append(_make_star_data("verse %d" % vi, v["verse_embedding"], &"verse", show_verse_stars))
 
 	if show_poem_star and _poem.has("poem_embedding"):
-		extras.append(_make_star_data(metadata.get("title", "poem"), _poem["poem_embedding"], &"poem", show_poem_star) )
+		extras.append(_make_star_data(metadata.get("title", "poem"), _poem["poem_embedding"], &"poem", show_poem_star))
 
 	if words.is_empty():
 		push_warning("Nothing to spawn")
 		return
-	create_stars(words)  # cone/AABB/chain from words only
+	create_stars(words) # cone/AABB/chain from words only
 	for sd in extras:
 		_spawn_extra(sd)
 
-func _make_star_data(label: String, embedding: Array, kind := &"word", hidden:=false) -> EmbStarData:
+
+func _first_embedding_size() -> int:
+	"""Fallback dim_count: size of the first word embedding in the data."""
+	for line: Dictionary in _lines:
+		for w: Dictionary in line.get("words", []):
+			return w.get("embedding", []).size()
+	return 3
+
+func _make_star_data(label: String, embedding: Array, kind := &"word", hidden := false) -> EmbStarData:
 	var sd := EmbStarData.new()
 	sd.label = label
 	sd.kind = kind
-	sd.spawn_pos = Vector3(embedding[0], embedding[1], embedding[2]) * SCALE
+	# clamp indices against data/metadata disagreement instead of crashing
+	var d := embedding.size()
+	if d != dim_count and not _mismatch_warned:
+		push_warning("embedding size %d != metadata dim_count %d: clamping indices" % [d, dim_count])
+		_mismatch_warned = true
+	var ix := mini(dim_axes.x, d - 1)
+	var iy := mini(dim_axes.y, d - 1)
+	var iz := mini(dim_axes.z, d - 1)
+	sd.spawn_pos = Vector3(embedding[ix], embedding[iy], embedding[iz]) * SCALE
 	return sd
 
 func clear_stars() -> void:
@@ -160,7 +186,6 @@ func clear_stars() -> void:
 			if is_instance_valid(n):
 				n.queue_free()
 	debug_nodes.clear()
-	
 
 
 func find_cluster_volume(star_data: Array[EmbStarData]):
@@ -172,19 +197,19 @@ func find_cluster_volume(star_data: Array[EmbStarData]):
 		minima = minima.min(d.spawn_pos)
 		maxima = maxima.max(d.spawn_pos)
 	return AABB(minima, maxima - minima)
-		
+
 func find_cluster_cone(star_data: Array[EmbStarData]) -> Dictionary:
 	var sum := Vector3.ZERO
 	var r_min := INF
 	var r_max := 0.0
 	for d in star_data:
 		var r := d.spawn_pos.length()
-		if r < 0.0001: continue  # direction undefined at origin
+		if r < 0.0001: continue # direction undefined at origin
 		r_min = minf(r_min, r)
 		r_max = maxf(r_max, r)
 		sum += d.spawn_pos / r
 	if sum.length() < 0.0001:
-		return {}  # directions cancel out, no meaningful cone
+		return {} # directions cancel out, no meaningful cone
 	var m := sum.normalized()
 	var theta := 0.0
 	for d in star_data:
@@ -217,7 +242,7 @@ func create_stars(star_data) -> void:
 		pairs = []
 		for sd in star_data:
 			pairs.append([sd.spawn_pos, ORIGIN])
-		register_debug(&"word_to_origin",draw_lines(pairs))
+		register_debug(&"word_to_origin", draw_lines(pairs))
 	var min_max = find_cluster_volume(star_data)
 	var cone = find_cluster_cone(star_data)
 	if not cone.is_empty():
@@ -227,17 +252,17 @@ func create_stars(star_data) -> void:
 	add_child(bounds_box)
 	draw_aabb(bounds_box, min_max)
 	register_debug(&"sentence_bounds_box", bounds_box)
-	
+
 	last_box = min_max
 	last_cone = cone
 	stars_rebuilt.emit(min_max, cone)
-	
+
 func _spawn_extra(sd: EmbStarData) -> void:
 	var style: Dictionary = KIND_STYLE[sd.kind]
 	var inst: EmbStar = STAR_SCENE.instantiate()
 	inst.data = sd
 	inst.position = sd.spawn_pos
-	
+
 	add_child(inst)
 	inst.label.font_size /= 2
 	inst.scale = Vector3.ONE * style["scale"]
@@ -246,7 +271,7 @@ func _spawn_extra(sd: EmbStarData) -> void:
 	mat.albedo_color = style["color"]
 	inst.material_override = mat
 	stars.append(inst)
-	register_debug(StringName(str(sd.kind) + "_stars"), inst)  # line_stars / verse_stars / poem_stars
+	register_debug(StringName(str(sd.kind) + "_stars"), inst) # line_stars / verse_stars / poem_stars
 	register_debug(&"labels", inst.label, _set_label_range)
 	if not sd.hidden: inst.visible = true
 
@@ -275,7 +300,7 @@ func draw_aabb(mi: MeshInstance3D, box: AABB, color := Color.YELLOW) -> void:
 	im.surface_begin(Mesh.PRIMITIVE_LINES, mat)
 	for i in 8:
 		for bit in [1, 2, 4]:
-			if i & bit == 0:  # edge = corners differing by one bit
+			if i & bit == 0: # edge = corners differing by one bit
 				im.surface_add_vertex(box.get_endpoint(i))
 				im.surface_add_vertex(box.get_endpoint(i | bit))
 	im.surface_end()
@@ -310,10 +335,10 @@ func draw_cone(cone: Dictionary, color := Color.CYAN, segments := 48) -> MeshIns
 	for i in segments:
 		var a0 := TAU * i / segments
 		var a1 := TAU * (i + 1) / segments
-		for r in [r_min, r_max]:  # rings
+		for r in [r_min, r_max]: # rings
 			im.surface_add_vertex(pt.call(r, a0))
 			im.surface_add_vertex(pt.call(r, a1))
-		if i % (segments / 8) == 0:  # generators, 8 total
+		if i % (segments / 8) == 0: # generators, 8 total
 			im.surface_add_vertex(Vector3.ZERO)
 			im.surface_add_vertex(pt.call(r_min, a0))
 			im.surface_add_vertex(pt.call(r_min, a0))
@@ -330,15 +355,21 @@ func draw_cone(cone: Dictionary, color := Color.CYAN, segments := 48) -> MeshIns
 const LABEL_RANGE_ON := 5000000.0
 const LABEL_RANGE_OFF := 5.0
 
-var debug_nodes: Dictionary = {}    # StringName -> Array[Node3D]
-var debug_on: Dictionary = {}       # StringName -> bool, survives rebuilds
-var debug_setters: Dictionary = {}  # StringName -> Callable(node, on); default: visible
+var debug_nodes: Dictionary = {} # StringName -> Array[Node3D]
+var debug_on: Dictionary = {} # StringName -> bool, survives rebuilds
+var debug_setters: Dictionary = {} # StringName -> Callable(node, on); default: visible
+var _warned_debug_keys: Dictionary = {} # StringName -> already warned (no InputMap action)
 
 func register_debug(key: StringName, node: Node3D, setter := Callable()) -> void:
+	# convention: every debug key must have a same-named input action
+	# (main.gd dispatches via InputMap). Warn once at registration time.
+	if not _warned_debug_keys.has(key) and not InputMap.has_action(key):
+		push_warning("register_debug: no input action named '%s' -- key will never be toggleable" % key)
+		_warned_debug_keys[key] = true
 	if setter.is_valid():
 		debug_setters[key] = setter
 	debug_nodes.get_or_add(key, []).append(node)
-	_apply_debug(key, node)  # applies current state, hidden by default
+	_apply_debug(key, node) # applies current state, hidden by default
 
 func set_debug(key: StringName, on: bool) -> void:
 	debug_on[key] = on
@@ -375,7 +406,7 @@ func print_shape(v: Variant, key := "root", depth := 0) -> void:
 			if v.is_empty():
 				print("%s%s: Array[0]" % [pad, key])
 			elif typeof(v[0]) == TYPE_FLOAT or typeof(v[0]) == TYPE_INT:
-				print("%s%s: numbers[%d]" % [pad, key, v.size()])  # e.g. embedding
+				print("%s%s: numbers[%d]" % [pad, key, v.size()]) # e.g. embedding
 			else:
 				print("%s%s: Array[%d], first element:" % [pad, key, v.size()])
 				print_shape(v[0], "[0]", depth + 1)
