@@ -3,12 +3,16 @@
 Protocol:
 - A card moves column in the same commit that changes its state.
 - Starting a task → card to **In Progress**; the completion commit flips it to **Done** with its hash.
-- Card numbers are assigned once and never re-used. Next free number: **23**.
+- Card numbers are assigned once and never re-used. Next free number: **28**.
 - Cards carry branch/commit refs where they exist.
 
 ## Backlog
 
-- [22] Extract `DimsHud` from main.gd: a `Label` node on `CanvasLayer` in `main.tscn` with its own script (`godot/dims_hud.gd`), connected to `dim_map.changed` (and initialized once) — owns its own anchors/offset/style and the `"dims  X:%d  Y:%d  Z:%d  (of %d)"` readout. main.gd keeps only the wiring; `_make_dims_hud`/`_update_dims_hud` deleted. Completes the model/input/view split (DimMap / InputHandler / DimsHud).
+- [27] Concrete alternate view (placeholder): first real "completely different way to view the app". Undefined until it exists; defines the actual requirements [26] designs against. No speculative abstraction before this.
+- [26] Input→action remap / app-configuration exploration: decouple keys from fixed semantic actions so the same key can mean different things per view; `ViewSetting` (look) + mappings converge into one app-configuration object. Exploration only — no interface design before the first concrete alternate view exists. Blocked by [27].
+- [25] Automation with a multi-line set idles: no auto-collapse, no rebuild — orbit keeps rotating, warning fires per completed rotation (decide once-vs-every-time during implementation). No code beyond [23]+[24] wiring; card documents the decided behavior. Depends on [24].
+- [24] Multi-line step semantics: `step()` on a multi-element set no-ops with `push_warning` instead of collapsing (behavior change, [23] first); single-element set steps with wrap as today. Preserves the startup `[0..7]` multi-line display. Depends on [23].
+- [23] Extract line-selection state from `main.gd` into `godot/line_selector.gd` (name TBD): owns `lines: Array[int]` (set semantics, not cursor) + `step()` + `changed(Array[int])` signal; `InputHandler.next_line_requested` and `AutoOrbit.rotation_completed` both wire to `step()`; `main.gd` wiring-only. Behavior-preserving relocation of the current collapse logic. Headless test `test_line_selector.gd`. Completes the model/input/view split alongside [18]/[20]/[22].
 
 - [21] DimMap direction enum: replace bare ±1 ints on `advance_window`/`advance_axis` and InputHandler's dim signals with a named const/enum pair (PR #2 review, primitive obsession). Unknown-axis behavior now unified: `get_dim` warns once (was silent 0).
 
