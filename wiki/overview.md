@@ -4,7 +4,7 @@ title: EmbVis Architecture Overview
 description: High-level architecture and data flow of the embedding visualization project.
 tags: [architecture, overview]
 status: stable
-generated: { by: pi/1.5.2, at: 2026-11-24T13:35:47Z }
+generated: { by: pi/1.5.2, at: 2026-11-24T14:00:35Z }
 stale_after: 2027-02-24T00:00:00Z
 sources:
   - id: readme
@@ -54,7 +54,7 @@ One JSON schema end-to-end: the [Poem-Embeddings format](/data-format.md).
 | Dimension reduction | `dimension_reduction.py` | Stage 2 — step pipeline over the corpus, writes d32 JSON |
 | Data layer | `data.py` | Typed records (`WordEmb`…`PoemEmb`) + `PoemEmbeddings` store |
 | Auth | `auth.py` | OpenAI-compatible client for `llm.scads.ai`, key from `~/.tudai-api-key` |
-| Godot app | `godot/` | Star visualization: `main.gd` (wiring), `spheres.gd` (data + stars), `dim_map.gd` (axis state), `input_handler.gd` (signals), `auto_orbit.gd`, `emb_star.tscn` |
+| Godot app | `godot/` | Star visualization: `main.gd` (wiring), `spheres.gd` (data + stars), `dim_map.gd` (axis state), `input_handler.gd` (signals), `dims_hud.gd` (readout), `auto_orbit.gd`, `emb_star.tscn` |
 | Tests | `test_api_gemma.py`, `test_data.py`, `godot/test_*.gd` | pytest + headless GDScript |
 | Task tracking | `KANBAN.md` | Cards 1–22, commit-referenced (see [Agent conventions](/conventions/agent-conventions.md)) |
 

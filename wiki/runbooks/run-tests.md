@@ -4,7 +4,7 @@ title: Run Tests
 description: How to run the pytest suite and the headless Godot unit tests, and what each covers.
 tags: [runbook, testing, pytest, godot]
 status: stable
-generated: { by: pi/1.5.2, at: 2026-11-24T13:35:47Z }
+generated: { by: pi/1.5.2, at: 2026-11-24T14:00:35Z }
 stale_after: 2027-02-24T00:00:00Z
 sources:
   - id: testdata
@@ -40,6 +40,7 @@ suite dies at import, not at a test.
 cd godot
 godot --headless -s test_dim_map.gd
 godot --headless -s test_input_handler.gd
+godot --headless -s test_dims_hud.gd
 ```
 
 Exit code 0 = all checks pass, 1 = at least one failure; one `FAIL:` line per

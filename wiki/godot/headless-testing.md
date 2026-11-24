@@ -4,7 +4,7 @@ title: Headless Godot Testing
 description: GDScript SceneTree unit tests run via godot --headless -s, plus the pytest suite for the Python pipeline.
 tags: [testing, godot, headless, pytest]
 status: stable
-generated: { by: pi/1.5.2, at: 2026-11-24T13:35:47Z }
+generated: { by: pi/1.5.2, at: 2026-11-24T14:00:35Z }
 stale_after: 2027-02-24T00:00:00Z
 sources:
   - id: testdimmap
@@ -14,6 +14,10 @@ sources:
   - id: testinput
     resource: godot/test_input_handler.gd
     title: test_input_handler.gd (InputHandler dispatch tests)
+    last_modified: 2026-11-24
+  - id: testdimshud
+    resource: godot/test_dims_hud.gd
+    title: test_dims_hud.gd (DimsHud bind/refresh tests)
     last_modified: 2026-11-24
 usage_window: { from: 2026-11-24, to: 2026-11-24 }
 ---
@@ -37,6 +41,7 @@ failure.** Run from `godot/`: `godot --headless -s test_<unit>.gd`.
 |-----------|--------|
 | `test_dim_map.gd` | defaults; window advance; axis advance with distinct-skip; duplicates allowed when `enforce_distinct` off; degenerate dim counts (d=1, d=2 collapse); unknown axis is a warned no-op; identity wraps emit nothing; `changed` signal contract |
 | `test_input_handler.gd` | `next_line`; dim windows incl. `Shift+R` exact-match dispatch; per-axis typed dispatch; user-input-terminates-dispatch (movement keys and mouse motion) |
+| `test_dims_hud.gd` | the full `bind → advance → refresh` path: the HUD text mirrors the `DimMap` mapping after window/axis advances (a `Label` works headless — no rendering, just state) |
 
 Not covered headless (documented in the test file): `exit` (quitting would
 end the runner) and `toggle_automation` (no InputMap action exists — dead

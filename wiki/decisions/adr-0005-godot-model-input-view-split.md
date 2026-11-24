@@ -4,7 +4,7 @@ title: ADR-0005 Godot model/input/view split
 description: DimMap (pure state) and InputHandler (semantic signals) extracted from main.gd so the core is headless-testable.
 tags: [decisions, godot, refactor, architecture]
 status: stable
-generated: { by: pi/1.5.2, at: 2026-11-24T13:35:47Z }
+generated: { by: pi/1.5.2, at: 2026-11-24T14:00:35Z }
 sources:
   - id: dimmapgd
     resource: godot/dim_map.gd
@@ -23,9 +23,9 @@ usage_window: { from: 2026-11-24, to: 2026-11-24 }
 
 # ADR-0005: Godot model/input/view split
 
-**Date**: 2026-11-23 (card [18]); 2026-11-24 (card [20])
+**Date**: 2026-11-23 (card [18]); 2026-11-24 (card [20]); 2026-11-24 (card [22])
 **Status**: Accepted
-**Commits**: `5e827e4`, `79ec0a2`, `77e6e8b`, `e8b1c31` (DimMap, card [18]); `ea7c179`, `937b924`, `1e9dc47`, `7eef1be`, `c8242df` (InputHandler, card [20])
+**Commits**: `5e827e4`, `79ec0a2`, `77e6e8b`, `e8b1c31` (DimMap, card [18]); `ea7c179`, `937b924`, `1e9dc47`, `7eef1be`, `c8242df` (InputHandler, card [20]); `d639f74`, `480225b` (DimsHud, card [22])
 
 ## Context
 
@@ -53,8 +53,10 @@ Split by responsibility:
   loose-match bug was found and fixed via `exact_match` (`1e9dc47`).
 - User input terminates dispatch (a takeover event never also advances a
   line or toggles a debug overlay).
-- Incomplete: the DimsHud label is still built in `main.gd`; extraction is
-  card [22], which will complete the split (DimMap / InputHandler / DimsHud).
+- - **`DimsHud`** — `Label` on `CanvasLayer` in `main.tscn` (`dims_hud.gd`),
+  a bound observer of `DimMap` (`bind()` tracks `changed`); layout lives in
+  the scene. Completed the split on 2026-11-24 (card [22], `d639f74` /
+  `480225b`) with headless test `test_dims_hud.gd`.
 - Card [21] (direction enum for ±1 ints) and card [19] (startup call
   cleanup) are follow-ups from the same review.
 

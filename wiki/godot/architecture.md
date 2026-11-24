@@ -4,12 +4,16 @@ title: Godot App Architecture
 description: Node graph and model/input/view split of the star visualization (main.tscn, Spheres, DimMap, InputHandler, AutoOrbit).
 tags: [godot, architecture, visualization, scene-graph]
 status: stable
-generated: { by: pi/1.5.2, at: 2026-11-24T13:35:47Z }
+generated: { by: pi/1.5.2, at: 2026-11-24T14:00:35Z }
 stale_after: 2027-02-24T00:00:00Z
 sources:
   - id: maingd
     resource: godot/main.gd
     title: main.gd (wiring + app state)
+    last_modified: 2026-11-24
+  - id: dimshudgd
+    resource: godot/dims_hud.gd
+    title: dims_hud.gd (DimsHud label)
     last_modified: 2026-11-24
   - id: spheresgd
     resource: godot/spheres.gd
@@ -42,7 +46,7 @@ The app follows a **model / input / view** split (ADR-0005):
 | `AutoOrbit` | `auto_orbit.gd` | Camera orbit automation; `fit(box, cone)` on rebuild, `rotation_completed` → next line |
 | `CharacterBody3D` | `character_body_3d.gd` | Manual WASD/space/shift flight; `manual` mirrors `!automation` |
 | `EmbStar` | `emb_star.tscn` / `emb_star.gd` | One star: `MeshInstance3D` + `Label3D` |
-| DimsHud | built in `main.gd` | Always-visible `dims X:.. Y:.. Z:.. (of ..)` readout (extraction is card [22]) |
+| `DimsHud` | `dims_hud.gd` | **View** — `Label` on `CanvasLayer` in `main.tscn`; bound observer of `DimMap` (`bind()` tracks `changed`), renders `dims X:.. Y:.. Z:.. (of ..)`; layout lives in the scene |
 
 ## Startup sequence
 
@@ -54,7 +58,8 @@ The app follows a **model / input / view** split (ADR-0005):
    `stars.stars_rebuilt → orbit.fit`; sets automation; `_rebuild()`;
    `_setup_dim_map()`; `_setup_input()`.
 3. **Dim handshake** — `Main` asserts `stars.dim_count > 3` before building
-   the `DimMap`: a failed data load would leave `dim_count` at its default 3
+   the `DimMap`, then binds the `DimsHud`: a failed data load would leave
+   `dim_count` at its default 3
    and every mapping would be a lie. The assert is a wiring invariant, not
    data validation.[^maingd]
 
@@ -88,8 +93,6 @@ emitted per rebuild.[^spheresgd]
 
 - **View Settings** (`ViewSetting` type) — work started 2026-11-23, `main.gd`
   carries a commented `normal_look` export ("will be added later").[^maingd]
-- **DimsHud extraction** — card [22]: a `Label` on `CanvasLayer` with its own
-  script, connected to `dim_map.changed`.
 
 ## Related
 

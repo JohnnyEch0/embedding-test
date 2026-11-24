@@ -4,7 +4,7 @@ title: Agent Conventions
 description: KANBAN protocol, issue tracking, domain docs, and where project decisions live — the working rules for agents in this repo.
 tags: [conventions, kanban, workflow, agents]
 status: stable
-generated: { by: pi/1.5.2, at: 2026-11-24T13:35:47Z }
+generated: { by: pi/1.5.2, at: 2026-11-24T14:00:35Z }
 stale_after: 2027-02-24T00:00:00Z
 sources:
   - id: kanban
@@ -46,10 +46,11 @@ GitHub Issues via the `gh` CLI; conventions and wayfinding operations live in
 
 `docs/agents/domain.md` governs glossary/ADR consumption: read `GLOSSARY.md`
 and `docs/adr/` before exploring, proceed silently if absent (the
-`/domain-modeling` skill creates them lazily). Note: neither `GLOSSARY.md` nor
-`docs/adr/` exists in this repo yet; **project decisions live in this bundle's
+`/domain-modeling` skill creates them lazily). `GLOSSARY.md` now exists
+(LAPMAN — the reporting-budget term); `docs/adr/` does not. **Project
+decisions live in this bundle's
 [`decisions/`](/decisions/index.md)** until the domain-docs flow creates the
-root-level homes (decided 2026-11-24).[^domain]
+root-level home (decided 2026-11-24).[^domain]
 
 ## Git workflow
 
