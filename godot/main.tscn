@@ -62,10 +62,10 @@ camera = NodePath("../CharacterBody3D/Camera3D")
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=118139904]
 
 [node name="Label" type="Label" parent="CanvasLayer" unique_id=1489413485]
-offset_left = 907.0
-offset_top = 408.0
-offset_right = 1142.0
-offset_bottom = 639.0
+offset_left = 913.0
+offset_top = 262.0
+offset_right = 1148.0
+offset_bottom = 649.0
 text = "Press 'ctrl +' to toggle:
 1 - word connections 
 2 - word to center connections
