@@ -12,12 +12,6 @@ var cur_line := [0]
 @export var enforce_distinct := true
 var dim_map: DimMap
 var dims_hud: Label
-## input action -> [axis, direction]
-const AXIS_ACTIONS := {
-	&"dim_x_plus": [&"x", 1], &"dim_x_minus": [&"x", -1],
-	&"dim_y_plus": [&"y", 1], &"dim_y_minus": [&"y", -1],
-	&"dim_z_plus": [&"z", 1], &"dim_z_minus": [&"z", -1],
-}
 
 # === automation
 @export var automation := false
@@ -26,8 +20,7 @@ const AXIS_ACTIONS := {
 @export var show_poem_stars := false
 @onready var orbit: AutoOrbit = $AutoOrbit
 @onready var player: CharacterBody3D = $CharacterBody3D
-
-const MOVE_ACTIONS: Array[StringName] = [&"move_left", &"move_right", &"move_up", &"move_down", &"move_forward", &"move_back"]
+@onready var input_handler: InputHandler = $InputHandler
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -38,43 +31,31 @@ func _ready() -> void:
 	set_automation(automation)
 	_rebuild()
 	_setup_dim_map()
-	pass # Replace with function body.
+	_setup_input()
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("exit"):
-		get_tree().quit()
-		return
-	if event.is_action_pressed("toggle_automation"):
-		set_automation(not automation)
-		return
-	if automation and _is_user_input(event):
-		set_automation(false)
-		return
+func _setup_input() -> void:
+	# after _setup_dim_map: dim_map exists, so its methods can be connected directly
+	input_handler.next_line_requested.connect(_advance_line)
+	input_handler.dims_window_requested.connect(dim_map.advance_window)
+	input_handler.dim_axis_requested.connect(dim_map.advance_axis)
+	input_handler.automation_toggled.connect(_toggle_automation)
+	input_handler.user_input_detected.connect(_on_user_input)
+	input_handler.debug_toggled.connect(_on_debug_toggled)
 
-	if event.is_action_pressed("next_line"):
-		_advance_line()
-		return
 
-	# --- dimension switching ---
-	if event.is_action_pressed("next_dims"):
-		dim_map.advance_window()
-		return
-	if event.is_action_pressed("prev_dims"):
-		dim_map.advance_window(-1)
-		return
-	for action: StringName in AXIS_ACTIONS:
-		if event.is_action_pressed(action):
-			var spec: Array = AXIS_ACTIONS[action]
-			dim_map.advance_axis(spec[0], spec[1])
-			return
+func _toggle_automation() -> void:
+	set_automation(not automation)
 
-	# Debug overlays: input action names match the debug registry keys,
-	# so dispatch via InputMap directly.
-	if event is InputEventKey and event.pressed and not event.is_echo():
-		for action in InputMap.get_actions():
-			if event.is_action_pressed(action) and stars_node.has_debug(action):
-				stars_node.toggle_debug(action)
+
+func _on_user_input() -> void:
+	if automation:
+		set_automation(false) # manual takeover
+
+
+func _on_debug_toggled(key: StringName) -> void:
+	if stars_node.has_debug(key):
+		stars_node.toggle_debug(key)
 
 
 func set_automation(on: bool) -> void:
@@ -87,15 +68,6 @@ func _advance_line() -> void:
 	cur_line = [wrapi(cur_line[0] + 1, 0, stars_node.line_count())]
 	assert(is_instance_of(cur_line, TYPE_ARRAY))
 	_rebuild() # triggers stars_rebuilt -> orbit.fit
-
-func _is_user_input(event: InputEvent) -> bool:
-	if event is InputEventMouseMotion:
-		return event.relative.length() > 3.0 # ignore jitter
-	for a in MOVE_ACTIONS:
-		if event.is_action_pressed(a):
-			return true
-	return false
-
 
 func _rebuild() -> void:
 	# print(show_poem_stars, show_line_stars, show_verse_stars)
