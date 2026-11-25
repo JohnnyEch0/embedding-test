@@ -4,7 +4,7 @@ title: Godot App Architecture
 description: Node graph and model/input/view split of the star visualization (main.tscn, Spheres, DimMap, InputHandler, AutoOrbit).
 tags: [godot, architecture, visualization, scene-graph]
 status: stable
-generated: { by: pi/1.5.2, at: 2026-11-24T14:00:35Z }
+generated: { by: pi/1.5.2, at: 2026-11-25T15:31:25Z }
 stale_after: 2027-02-24T00:00:00Z
 sources:
   - id: maingd
@@ -26,7 +26,7 @@ sources:
   - id: a5
     resource: /decisions/adr-0005-godot-model-input-view-split.md
     title: ADR-0005 Model/input/view split
-usage_window: { from: 2026-11-24, to: 2026-11-24 }
+usage_window: { from: 2026-11-24, to: 2026-11-25 }
 ---
 
 # Godot App Architecture
@@ -47,6 +47,7 @@ The app follows a **model / input / view** split (ADR-0005):
 | `CharacterBody3D` | `camera_rig.gd` | Manual WASD/space/shift flight; `manual` mirrors `!automation` |
 | `EmbStar` | `emb_star.tscn` / `emb_star.gd` | One star: `MeshInstance3D` + `Label3D` |
 | `DimsHud` | `dims_hud.gd` | **View** — `Label` on `CanvasLayer` in `main.tscn`; bound observer of `DimMap` (`bind()` tracks `changed`), renders `dims X:.. Y:.. Z:.. (of ..)`; layout lives in the scene |
+| `DevConsole` | `dev_console.gd` | **View + applier** — in-game console (toggle: `^` key / `toggle_console` action) that live-tunes star material, per-star `OmniLight3D`, environment glow/fog, camera, and the Forward+ cluster limit; model is `StarSettings` (`star_settings.gd`); `export` command hands off values to bake into the scenes. See [Dev Console](/godot/dev-console.md) |
 
 ## Startup sequence
 
@@ -97,6 +98,7 @@ emitted per rebuild.[^spheresgd]
 ## Related
 
 - [DimMap](/godot/dim-map.md) — mapping semantics and keymap
+- [Dev Console](/godot/dev-console.md) — in-game star/light/glow/camera tuning
 - [Headless testing](/godot/headless-testing.md)
 - [Data format](/data-format.md)
 

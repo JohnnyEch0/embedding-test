@@ -4,7 +4,7 @@ title: EmbVis Changelog
 description: Notable changes to the EmbVis project, newest first.
 tags: [changelog]
 status: stable
-generated: { by: pi/1.5.2, at: 2026-11-25T14:21:07Z }
+generated: { by: pi/1.5.2, at: 2026-11-25T15:31:25Z }
 sources:
   - id: kanban
     resource: KANBAN.md
@@ -28,6 +28,16 @@ context, `KANBAN.md`.
 
 ## 2026-11-25
 
+- **Dev console for star/light tuning**: in-game Quake-style console
+  (toggle `^` / `toggle_console` action) that live-tunes star material
+  emission, per-star `OmniLight3D`, WorldEnvironment glow/fog/background,
+  camera near/far/fov, and the Forward+ cluster cap — rebuild-proof
+  (re-applies after every star rebuild), values exportable as JSON for
+  baking into the scenes (`24ec400` model, `af3acdb` console + wiring,
+  `738736b` star `cast_shadow` off). `StarSettings` pure model +
+  `DevConsole` view/applier keep the model/input/view split; headless
+  tests `test_star_settings.gd` / `test_dev_console.gd`. New concept:
+  [Dev Console](/godot/dev-console.md).
 - **Nearest-words stage** (`281c586`): `api_gemma_vocabulary.py` builds a
   10k-word embedding index in `out/vocab_10k/` (resumable shards, unit-norm
   check); `api_gemma_nearest_n.py` annotates poem JSONs with the top-`n`
