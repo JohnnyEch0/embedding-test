@@ -28,6 +28,12 @@ context, `KANBAN.md`.
 
 ## 2026-11-25
 
+- **Intro fixes** (card [28]): star line mesh joins stars in order (vertex
+  pairs, not one-vertex-per-star), failed scene switch re-arms the intro
+  (Esc retry instead of a dead end), a deferred `_play` queued before
+  `skip_all` no longer starts a child under the fade, and `test_intro.gd`
+  now smoke-runs the real Title/Stars/Camera scenes under the mother
+  (`4df5a53`, `53910ff`, `dcea41f`, `dfc4928`).
 - **Intro mother scene** (card [28]): `intro.tscn` replaces `main.tscn` as the
   app's main scene — plays handcrafted `IntroScene` children (title/subtitle
   fades, labelled stars, camera glide) then error-checks a fade-out switch
