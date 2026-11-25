@@ -4,19 +4,36 @@ title: EmbVis Changelog
 description: Notable changes to the EmbVis project, newest first.
 tags: [changelog]
 status: stable
-generated: { by: pi/1.5.2, at: 2026-11-24T13:35:47Z }
+generated: { by: pi/1.5.2, at: 2026-11-25T14:21:07Z }
 sources:
   - id: kanban
     resource: KANBAN.md
     title: KANBAN.md (done cards with commit refs)
     last_modified: 2026-11-24
-usage_window: { from: 2026-11-24, to: 2026-11-24 }
+  - id: vocab
+    resource: api_gemma_vocabulary.py
+    title: api_gemma_vocabulary.py (vocab index builder)
+    last_modified: 2026-11-25
+  - id: nearest
+    resource: api_gemma_nearest_n.py
+    title: api_gemma_nearest_n.py (nearest-word annotator)
+    last_modified: 2026-11-25
+usage_window: { from: 2026-11-24, to: 2026-11-25 }
 ---
 
 # Changelog
 
 Notable changes only. For the full commit history, see `git log`; for task
 context, `KANBAN.md`.
+
+## 2026-11-25
+
+- **Nearest-words stage** (`281c586`): `api_gemma_vocabulary.py` builds a
+  10k-word embedding index in `out/vocab_10k/` (resumable shards, unit-norm
+  check); `api_gemma_nearest_n.py` annotates poem JSONs with the top-`n`
+  closest vocab words per word/line/verse/poem (`--save` writes
+  `<stem>_neighbors.json`). Both documented as a new concept:
+  [nearest-words](/pipeline/nearest-words.md).
 
 ## 2026-11-24
 
