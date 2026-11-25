@@ -28,6 +28,12 @@ context, `KANBAN.md`.
 
 ## 2026-11-25
 
+- **Intro mother scene** (card [28]): `intro.tscn` replaces `main.tscn` as the
+  app's main scene — plays handcrafted `IntroScene` children (title/subtitle
+  fades, labelled stars, camera glide) then error-checks a fade-out switch
+  back to `main.tscn`; new `skip_step` (Space) / `skip_all` (Esc) actions and
+  headless test `test_intro.gd`. Documented as a new concept:
+  [intro-scene](/godot/intro-scene.md).
 - **Nearest-words stage** (`281c586`): `api_gemma_vocabulary.py` builds a
   10k-word embedding index in `out/vocab_10k/` (resumable shards, unit-norm
   check); `api_gemma_nearest_n.py` annotates poem JSONs with the top-`n`
