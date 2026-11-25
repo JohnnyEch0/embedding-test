@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://cufxrrl55ss6n" path="res://controls_label.gd" id="6_7mycd"]
 [ext_resource type="Script" uid="uid://bq2074vapvpdr" path="res://input_handler.gd" id="7_input"]
 [ext_resource type="Script" path="res://dims_hud.gd" id="8_dimshud"]
+[ext_resource type="Script" uid="uid://dk7xq2mv4p9c0" path="res://dev_console.gd" id="9_console"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_h2yge"]
 shader = ExtResource("2_1bvp3")
@@ -100,3 +101,11 @@ f/g/h - x/y/z dim (+shift back)
 "
 label_settings = SubResource("LabelSettings_lquwl")
 script = ExtResource("6_7mycd")
+
+[node name="DevConsole" type="CanvasLayer" parent="."]
+layer = 2
+script = ExtResource("9_console")
+environment = NodePath("../WorldEnvironment")
+camera = NodePath("../CharacterBody3D/Camera3D")
+spheres = NodePath("../Spheres")
+player = NodePath("../CharacterBody3D")
