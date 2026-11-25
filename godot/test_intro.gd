@@ -7,13 +7,16 @@ extends SceneTree
 ##     godot --headless -s test_intro.gd
 ##
 ## Exit code 0 = all checks pass, 1 = at least one failure.
-## Fake IntroScene children are built and PackedScene-packed in code.
-## Frame-driven (process_frame): the mother defers scene switching.
+## Fake IntroScene children are built and PackedScene-packed in code; Run C
+## also replays the real Title/Stars/Camera scenes (timing shortened) under
+## the mother. Frame-driven (process_frame): the mother defers scene switching.
 
 const IntroTscn := preload("res://intro.tscn")
 const StarsTscn := preload("res://intro/stars_scene.tscn")
+const TitleTscn := preload("res://intro/title_scene.tscn")
+const CameraTscn := preload("res://intro/camera_scene.tscn")
 
-enum State { A_WAIT_SLOW, A_SKIP_CHECK, A_WAIT_MAIN, B_WAIT_SLOW, B_WAIT_FAIL, B_RETRY, DONE }
+enum State { A_WAIT_SLOW, A_SKIP_CHECK, A_WAIT_MAIN, B_WAIT_SLOW, B_WAIT_FAIL, B_RETRY, C_WATCH, C_SKIP, DONE }
 
 var _checks := 0
 var _failures := 0
@@ -21,6 +24,8 @@ var _state: State = State.A_WAIT_SLOW
 var _frame := 0
 var _state_frame := 0
 var _mother: Intro = null
+var _c_seen: Array[String] = []
+var _c_main_before: Node = null
 
 
 class FakeInstant extends IntroScene:
@@ -105,6 +110,33 @@ func _on_frame() -> void:
 		State.B_RETRY:
 			if _state_frame > 40:
 				_check(_mother.fade_rect.self_modulate.a > 0.0, "Esc retry re-runs the fade")
+				_mother.free()
+				_mother = null
+				_setup_run_c()
+				_state = State.C_WATCH
+				_state_frame = 0
+		State.C_WATCH:
+			_track_child()
+			if not is_instance_valid(_c_main_before):
+				_check(_c_seen == ["TitleScene", "StarsScene", "CameraScene"], "smoke: real scenes play in order under the mother")
+				_check(current_scene != null and current_scene.name == "main", "smoke: real-scene run reaches main.tscn")
+				_mother.free()
+				_mother = null
+				_setup_run_c()
+				_state = State.C_SKIP
+				_state_frame = 0
+			elif _state_frame > 1500:
+				_check(false, "smoke: real-scene run reaches main.tscn (timeout)")
+				_state = State.DONE
+		State.C_SKIP:
+			if _track_child():
+				_mother._unhandled_input(_event(&"skip_step"))  # skip each new child once
+			if not is_instance_valid(_c_main_before):
+				_check(_c_seen == ["TitleScene", "StarsScene", "CameraScene"], "smoke: skip advances each real scene")
+				_check(current_scene != null and current_scene.name == "main", "smoke: skipped real-scene run reaches main.tscn")
+				_state = State.DONE
+			elif _state_frame > 1500:
+				_check(false, "smoke: skipped real-scene run reaches main.tscn (timeout)")
 				_state = State.DONE
 		State.DONE:
 			_finish_test()
@@ -161,6 +193,37 @@ func _test_base_contract() -> void:
 # ---------------------------------------------------------------------------
 # helpers
 # ---------------------------------------------------------------------------
+
+func _setup_run_c() -> void:
+	_mother = IntroTscn.instantiate() as Intro
+	_mother.name = "MotherC"
+	_mother.scenes = [
+		_pack_real(TitleTscn, {
+			"title_in": 0.05, "title_hold": 0.05, "title_out": 0.05, "gap": 0.05,
+			"sub_in": 0.05, "sub_hold": 0.05, "sub_out": 0.05,
+		}),
+		_pack_real(StarsTscn, {"star_in": 0.05, "appear_gap": 0.05, "hold": 0.05}),
+		_pack_real(CameraTscn, {"duration": 0.3}),
+	]
+	_c_seen = []
+	_c_main_before = current_scene
+	root.add_child(_mother)
+
+
+func _pack_real(scene: PackedScene, props: Dictionary) -> PackedScene:
+	var inst := scene.instantiate()
+	for key in props:
+		inst.set(key, props[key])
+	return _pack(inst)
+
+
+func _track_child() -> bool:
+	var n := _current_name()
+	if n != "" and (_c_seen.is_empty() or _c_seen[_c_seen.size() - 1] != n):
+		_c_seen.append(n)
+		return true
+	return false
+
 
 func _fake(cls: GDScript, node_name: String) -> IntroScene:
 	var n: IntroScene = cls.new()
