@@ -76,7 +76,7 @@ func _on_frame() -> void:
 				_setup_run_b()
 				_state = State.B_WAIT_SLOW
 				_state_frame = 0
-			elif _state_frame > 1800:
+			elif _state_frame > 3600:
 				_check(false, "intro reached main.tscn after last scene (timeout)")
 				_state = State.DONE
 		State.B_WAIT_SLOW:
@@ -90,10 +90,11 @@ func _on_frame() -> void:
 				_check(false, "double finished ignored (timeout)")
 				_state = State.DONE
 		State.B_WAIT_FAIL:
-			if _state_frame > 30:
+			if _state_frame > 400:
 				_check(is_instance_valid(_mother) and _mother.is_inside_tree(), "failed scene change leaves intro alive")
 				_check(current_scene != null and current_scene.name == "main", "failed scene change keeps current scene")
 				_check(_current_name() == "SlowE", "failed scene change leaves intro content visible")
+				_check(_mother.fade_rect.self_modulate.a == 0.0, "failed scene change resets fade to transparent")
 				_state = State.DONE
 		State.DONE:
 			_finish_test()

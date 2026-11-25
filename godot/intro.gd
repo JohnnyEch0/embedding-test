@@ -6,6 +6,7 @@ extends Node3D
 
 @onready var camera: Camera3D = $Camera3D
 @onready var scene_slot: Node = $SceneSlot
+@onready var fade_rect: ColorRect = $CanvasLayer/FadeRect
 
 var index := -1
 var _finished := false
@@ -82,7 +83,9 @@ func _finish() -> void:
 	if _finished:
 		return
 	_finished = true
-	_go_to_main()
+	var tween := create_tween()
+	tween.tween_property(fade_rect, "self_modulate:a", 1.0, 0.4)
+	tween.tween_callback(_go_to_main)
 
 
 func _go_to_main() -> void:
@@ -90,3 +93,4 @@ func _go_to_main() -> void:
 	var err := get_tree().change_scene_to_file(main_scene_path)
 	if err != OK:
 		push_error("Intro: change_scene_to_file(%s) failed with error %d, staying on intro." % [main_scene_path, err])
+		fade_rect.self_modulate.a = 0.0
