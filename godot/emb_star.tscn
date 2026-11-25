@@ -15,6 +15,7 @@ multichannel_signed_distance_field = true
 msdf_pixel_range = 8
 
 [node name="MeshInstance3D" type="MeshInstance3D" unique_id=1738465357]
+cast_shadow = 0
 mesh = SubResource("SphereMesh_aa68f")
 script = ExtResource("1_fdhmq")
 
