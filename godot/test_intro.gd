@@ -11,6 +11,7 @@ extends SceneTree
 ## Frame-driven (process_frame): the mother defers scene switching.
 
 const IntroTscn := preload("res://intro.tscn")
+const StarsTscn := preload("res://intro/stars_scene.tscn")
 
 enum State { A_WAIT_SLOW, A_SKIP_CHECK, A_WAIT_MAIN, B_WAIT_SLOW, B_WAIT_FAIL, DONE }
 
@@ -42,6 +43,7 @@ class FakeDouble extends IntroScene:
 
 func _initialize() -> void:
 	_test_base_contract()
+	_test_star_lines()
 	_setup_run_a()
 	process_frame.connect(_on_frame)
 
@@ -120,6 +122,20 @@ func _setup_run_b() -> void:
 		_pack(_fake(FakeSlow, "SlowE")),
 	]
 	root.add_child(_mother)
+
+
+func _test_star_lines() -> void:
+	var stars: StarsScene = StarsTscn.instantiate()
+	root.add_child(stars)
+	stars.start()
+	var expected: int = 2 * (mini(stars.positions.size(), stars.words.size()) - 1)
+	var lines := stars.get_node_or_null("Lines") as MeshInstance3D
+	var got := -1
+	if lines != null and lines.mesh is ArrayMesh:
+		got = (lines.mesh as ArrayMesh).surface_get_arrays(0)[Mesh.ARRAY_VERTEX].size()
+	_check(got == expected, "stars: line mesh joins stars in order (%d verts, want %d)" % [got, expected])
+	stars.skip()
+	stars.free()
 
 
 func _test_base_contract() -> void:

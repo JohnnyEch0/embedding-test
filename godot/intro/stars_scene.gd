@@ -37,7 +37,6 @@ func skip() -> void:
 
 func _build_stars() -> void:
 	var count: int = mini(positions.size(), words.size())
-	var line_points := PackedVector3Array()
 	for i in count:
 		var star := MeshInstance3D.new()
 		star.name = "Star" + str(i)
@@ -58,8 +57,11 @@ func _build_stars() -> void:
 		star.add_child(label)
 		add_child(star)
 		_stars.append(star)
-		line_points.append(positions[i])
 	if draw_lines and count >= 2:
+		var line_points := PackedVector3Array()
+		for i in range(1, count):
+			line_points.append(positions[i - 1])
+			line_points.append(positions[i])
 		var lines := MeshInstance3D.new()
 		lines.name = "Lines"
 		var arrays: Array = []
