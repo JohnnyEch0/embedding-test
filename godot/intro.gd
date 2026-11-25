@@ -21,6 +21,8 @@ func _ready() -> void:
 
 
 func _play(i: int) -> void:
+	if _finished:
+		return  # a queued play must not start a child after skip_all
 	index = i
 	for child in scene_slot.get_children():
 		child.free()

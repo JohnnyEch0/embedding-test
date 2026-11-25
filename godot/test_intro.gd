@@ -84,8 +84,8 @@ func _on_frame() -> void:
 		State.B_WAIT_SLOW:
 			if _current_name() == "SlowE":
 				_check(_mother.scene_slot.get_child_count() == 1, "double finished ignored: exactly one advance")
-				_mother._unhandled_input(_event(&"skip_all"))
-				_mother._unhandled_input(_event(&"skip_step"))  # no-op path: must not crash
+				_mother._unhandled_input(_event(&"skip_step"))  # queues deferred _play(2)
+				_mother._unhandled_input(_event(&"skip_all"))  # same frame: finish + fade
 				_state = State.B_WAIT_FAIL
 				_state_frame = 0
 			elif _state_frame > 120:
@@ -96,6 +96,7 @@ func _on_frame() -> void:
 				_check(is_instance_valid(_mother) and _mother.is_inside_tree(), "failed scene change leaves intro alive")
 				_check(current_scene != null and current_scene.name == "main", "failed scene change keeps current scene")
 				_check(_current_name() == "SlowE", "failed scene change leaves intro content visible")
+				_check(_mother.scene_slot.get_child_count() == 1, "queued play blocked after skip_all: no child under the fade")
 				_check(_mother.fade_rect.self_modulate.a == 0.0, "failed scene change resets fade to transparent")
 				_check(_mother._finished == false, "failed scene change re-arms the intro")
 				_mother._unhandled_input(_event(&"skip_all"))  # Esc retry
@@ -127,6 +128,7 @@ func _setup_run_b() -> void:
 	_mother.scenes = [
 		_pack(_fake(FakeDouble, "DoubleD")),
 		_pack(_fake(FakeSlow, "SlowE")),
+		_pack(_fake(FakeSlow, "SlowF")),
 	]
 	root.add_child(_mother)
 
