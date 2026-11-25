@@ -1,8 +1,9 @@
-[gd_scene load_steps=7 format=3 uid="uid://bintro0mother0"]
+[gd_scene load_steps=8 format=3 uid="uid://bintro0mother0"]
 
 [ext_resource type="Script" path="res://intro.gd" id="1_intro"]
 [ext_resource type="Shader" uid="uid://d0ghiwya5633m" path="res://space.gdshader" id="2_space"]
 [ext_resource type="PackedScene" path="res://intro/title_scene.tscn" id="3_title"]
+[ext_resource type="PackedScene" path="res://intro/stars_scene.tscn" id="4_stars"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_intro"]
 shader = ExtResource("2_space")
@@ -21,7 +22,7 @@ sky = SubResource("Sky_intro")
 
 [node name="Intro" type="Node3D"]
 script = ExtResource("1_intro")
-scenes = [ExtResource("3_title")]
+scenes = [ExtResource("3_title"), ExtResource("4_stars")]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_intro")
