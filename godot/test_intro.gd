@@ -13,7 +13,7 @@ extends SceneTree
 const IntroTscn := preload("res://intro.tscn")
 const StarsTscn := preload("res://intro/stars_scene.tscn")
 
-enum State { A_WAIT_SLOW, A_SKIP_CHECK, A_WAIT_MAIN, B_WAIT_SLOW, B_WAIT_FAIL, DONE }
+enum State { A_WAIT_SLOW, A_SKIP_CHECK, A_WAIT_MAIN, B_WAIT_SLOW, B_WAIT_FAIL, B_RETRY, DONE }
 
 var _checks := 0
 var _failures := 0
@@ -97,6 +97,13 @@ func _on_frame() -> void:
 				_check(current_scene != null and current_scene.name == "main", "failed scene change keeps current scene")
 				_check(_current_name() == "SlowE", "failed scene change leaves intro content visible")
 				_check(_mother.fade_rect.self_modulate.a == 0.0, "failed scene change resets fade to transparent")
+				_check(_mother._finished == false, "failed scene change re-arms the intro")
+				_mother._unhandled_input(_event(&"skip_all"))  # Esc retry
+				_state = State.B_RETRY
+				_state_frame = 0
+		State.B_RETRY:
+			if _state_frame > 40:
+				_check(_mother.fade_rect.self_modulate.a > 0.0, "Esc retry re-runs the fade")
 				_state = State.DONE
 		State.DONE:
 			_finish_test()

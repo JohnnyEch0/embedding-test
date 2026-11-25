@@ -94,3 +94,4 @@ func _go_to_main() -> void:
 	if err != OK:
 		push_error("Intro: change_scene_to_file(%s) failed with error %d, staying on intro." % [main_scene_path, err])
 		fade_rect.self_modulate.a = 0.0
+		_finished = false  # re-arm: Esc retry / child skip can finish again
