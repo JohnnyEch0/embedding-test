@@ -11,8 +11,6 @@ extends IntroScene
 @export var title_text := "Embedding Space"
 @export var sub_text := "An interactive visualisation of how machines represent everyday language"
 
-var _tween: Tween = null
-
 @onready var title_label: Label = $CanvasLayer/Title
 @onready var sub_label: Label = $CanvasLayer/Subtitle
 
@@ -29,9 +27,3 @@ func start() -> void:
 	_tween.tween_interval(sub_hold)
 	_tween.tween_property(sub_label, "modulate:a", 0.0, sub_out)
 	_tween.tween_callback(_finish)
-
-
-func skip() -> void:
-	if _tween != null and _tween.is_valid():
-		_tween.kill()
-	_finish()

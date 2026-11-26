@@ -30,7 +30,6 @@ const LABEL_RANGE_ON := 5000000.0
 @export var appear_gap := 0.4
 @export var hold := 3.0
 
-var _tween: Tween = null
 var _stars: Array[EmbStar] = []
 
 
@@ -43,12 +42,6 @@ func start() -> void:
 		push_error("StarsScene: %d positions but %d words, using the smaller count." % [positions.size(), words.size()])
 	_build_stars()
 	_play_stars()
-
-
-func skip() -> void:
-	if _tween != null and _tween.is_valid():
-		_tween.kill()
-	_finish()
 
 
 func _star_label(star: EmbStar) -> Label3D:

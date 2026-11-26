@@ -21,7 +21,6 @@ extends IntroScene
 
 const StarsTscn := preload("res://intro/stars_scene.tscn")
 
-var _tween: Tween = null
 var _look := Vector3.ZERO
 
 
@@ -41,12 +40,6 @@ func start() -> void:
 	_tween = create_tween()
 	_tween.tween_method(_move, 0.0, 1.0, duration)
 	_tween.tween_callback(_finish)
-
-
-func skip() -> void:
-	if _tween != null and _tween.is_valid():
-		_tween.kill()
-	_finish()
 
 
 func _move(t: float) -> void:
