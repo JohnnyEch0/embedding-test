@@ -7,8 +7,8 @@ status: stable
 generated: { by: pi/1.5.2, at: 2026-11-24T13:35:47Z }
 sources:
   - id: spheresgd
-    resource: godot/spheres.gd
-    title: spheres.gd (data loading)
+    resource: godot/stars/spheres.gd
+    title: stars/spheres.gd (data loading)
     last_modified: 2026-11-24
   - id: kanban
     resource: KANBAN.md
@@ -33,7 +33,7 @@ loading `eg2_d32_*.json` with the old reader crashed in `_ready()`.
 ## Decision
 
 `godot/data/` holds the pipeline's single-file JSON directly
-(`eg2_d32_*.json`, the reduced d128→d32 corpus). `spheres.gd` reads
+(`eg2_d32_*.json`, the reduced d128→d32 corpus). `stars/spheres.gd` reads
 `metadata`/`lines`/`verses`/`poem` from the Poem-Embeddings schema; the
 legacy `embedding_dict` path is gone. `sample.json` and `example.json` remain
 in the data directory as legacy fixtures only.
@@ -45,7 +45,7 @@ in the data directory as legacy fixtures only.
 - `dim_count` is read from `metadata.dimensions`, which makes the
   `Main` ↔ `Spheres` dim-handshake assert meaningful (see
   [Architecture](/godot/architecture.md)).
-- One known consumer bug remains: `spheres.gd` treats `line_range` as
+- One known consumer bug remains: `stars/spheres.gd` treats `line_range` as
   inclusive while the Python writer emits exclusive ends (see
   [Data format](/data-format.md#known-consumer-bug)).
 - Dimension analysis output was split out of this card into card [1].

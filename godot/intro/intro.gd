@@ -2,7 +2,7 @@ class_name Intro
 extends Node3D
 
 @export var scenes: Array[PackedScene] = []
-@export var main_scene_path := "res://main.tscn"
+@export var main_scene_path := "res://app/main.tscn"
 
 @onready var camera: Camera3D = $Camera3D
 @onready var scene_slot: Node = $SceneSlot

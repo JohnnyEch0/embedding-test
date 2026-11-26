@@ -8,7 +8,7 @@ extends IntroScene
 ## stays readable at glide distance (the hand-rolled labels rendered
 ## ~3 px tall because they lacked fixed_size and a tuned pixel_size).
 
-const StarScene := preload("res://emb_star.tscn")
+const StarScene := preload("res://stars/emb_star.tscn")
 
 ## EmbStar's base SphereMesh radius (emb_star.tscn); star_scale multiplies it.
 const BASE_STAR_RADIUS := 0.5

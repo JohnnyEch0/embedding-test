@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://d0q2sgf56gm7d"]
 
-[ext_resource type="Script" uid="uid://bvd4kh0tgrfqh" path="res://intro.gd" id="1_intro"]
+[ext_resource type="Script" uid="uid://bvd4kh0tgrfqh" path="res://intro/intro.gd" id="1_intro"]
 [ext_resource type="PackedScene" uid="uid://dajaqat110052" path="res://intro/title_scene.tscn" id="3_title"]
 [ext_resource type="PackedScene" uid="uid://ckyg5at110052" path="res://intro/stars_scene.tscn" id="4_stars"]
-[ext_resource type="PackedScene" uid="uid://bhxkgrqi8krk4" path="res://intro/camera_scene.tscn" id="5_camera"]
+[ext_resource type="PackedScene" uid="uid://bcamera0scene0" path="res://intro/camera_scene.tscn" id="5_camera"]
 [ext_resource type="Environment" uid="uid://3080cs02ogjw" path="res://resources/environment.tres" id="5_y72e6"]
 
 [node name="Intro" type="Node3D" unique_id=1327819416]

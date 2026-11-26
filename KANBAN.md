@@ -3,7 +3,7 @@
 Protocol:
 - A card moves column in the same commit that changes its state.
 - Starting a task → card to **In Progress**; the completion commit flips it to **Done** with its hash.
-- Card numbers are assigned once and never re-used. Next free number: **29**.
+- Card numbers are assigned once and never re-used. Next free number: **30**.
 - Cards carry branch/commit refs where they exist.
 - Within a column, cards are grouped by project stage: **a)** Getting Embeddings and Datastructure, **b)** Finding Semantically meaningful Dimensions, **c)** Godot Demonstrator.
 
@@ -57,6 +57,7 @@ _(none yet — [1] and [17] still open in Backlog)_
 
 ### c) Godot Demonstrator
 
+- [29] Godot project restructure (branch `godot-structure-refactor`): flat `godot/` layout into feature dirs — `app/` (main), `stars/` (spheres, emb_star, space.gdshader), `dims/` (dim_map, input_handler, dims_hud, controls_label), `camera/` (camera_rig, auto_orbit), `intro/` (intro mother + intro_scene merged with existing subscenes), `tests/` (test_*.gd); `resources/`, `data/` unchanged. Unused `scripts/view_settings.gd` deleted. All `res://` refs + `project.godot` main scene updated; `.uid` files moved with their scripts (uids stable). No behavior change; headless tests + clean boot green — `3d7e52c`.
 - [28] Intro mother scene (branch `xx_startup_scene_2`): `intro.tscn` (`Intro`) owns the app's single camera + environment/sky, plays handcrafted `IntroScene` children in order (title fades, labelled stars, camera glide), resets the camera pose per child, fades out, then error-checks the switch to `main.tscn` (failure stays on intro, fade reset); `skip_step` (Space) / `skip_all` (Esc) actions; headless test `godot/test_intro.gd`; project main scene now `intro.tscn` — `2b7eb28`, `74c585b`, `eff258e`, `7637163`, `5855f5a`, `4de287a`; fix round: star lines join in order (`4df5a53`), failed scene switch re-arms the intro (`53910ff`), deferred play blocked after finish (`dcea41f`), smoke test covering the real child scenes (`dfc4928`); fix round 2: stars reuse EmbStar — fixed-size labels readable at glide distance (`35481ad`), camera glide looks into the star cluster (`3bb7f75`), tween-kill skip hoisted into the `IntroScene` base (`c118a54`).
 - [22] Extract `DimsHud` node (`godot/dims_hud.gd`) from main.gd: bound observer of `DimMap` (`bind()` tracks `changed`), layout/font moved to main.tscn, headless test `test_dims_hud.gd`, main.gd wiring-only — `d639f74`, `480225b`.
 - [20] Extract `InputHandler` node (`godot/input_handler.gd`) from `main.gd`: raw input → semantic signals (`next_line_requested`, `dims_window_requested(dir)`, `dim_axis_requested(axis, dir)`, `automation_toggled`, `user_input_detected`, `debug_toggled`); `main.gd` only connects — `ea7c179`.

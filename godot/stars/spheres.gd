@@ -1,6 +1,6 @@
 extends Node3D
 
-const STAR_SCENE = preload("res://emb_star.tscn")
+const STAR_SCENE = preload("res://stars/emb_star.tscn")
 
 const SCALE := 1000
 const ORIGIN = Vector3(0, 0, 0)

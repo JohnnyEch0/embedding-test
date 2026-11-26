@@ -1,7 +1,7 @@
 extends SceneTree
 
-## Headless unit test for the intro mother scene (res://intro.gd) and the
-## IntroScene base contract (res://intro_scene.gd).
+## Headless unit test for the intro mother scene (res://intro/intro.gd) and the
+## IntroScene base contract (res://intro/intro_scene.gd).
 ##
 ## Run from the godot/ project directory:
 ##     godot --headless -s test_intro.gd
@@ -11,7 +11,7 @@ extends SceneTree
 ## also replays the real Title/Stars/Camera scenes (timing shortened) under
 ## the mother. Frame-driven (process_frame): the mother defers scene switching.
 
-const IntroTscn := preload("res://intro.tscn")
+const IntroTscn := preload("res://intro/intro.tscn")
 const StarsTscn := preload("res://intro/stars_scene.tscn")
 const TitleTscn := preload("res://intro/title_scene.tscn")
 const CameraTscn := preload("res://intro/camera_scene.tscn")

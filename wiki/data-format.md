@@ -20,8 +20,8 @@ sources:
     title: data.py (writer/reader of record)
     last_modified: 2026-11-19
   - id: spheresgd
-    resource: godot/spheres.gd
-    title: godot/spheres.gd (consumer)
+    resource: godot/stars/spheres.gd
+    title: godot/stars/spheres.gd (consumer)
     last_modified: 2026-11-24
 usage_window: { from: 2026-11-24, to: 2026-11-24 }
 ---
@@ -109,7 +109,7 @@ lines in JSON data".
 
 ## Known consumer bug
 
-`spheres.gd` treats `verses[i].line_range` as **inclusive**
+`stars/spheres.gd` treats `verses[i].line_range` as **inclusive**
 (`range(r[0], r[1] + 1)` with a `# ASSUMED inclusive` comment, plus an
 inclusive hit-test), while the Python writer emits **exclusive** ends.
 Effect: verse-related marking (verse-star hit tests, `verses_used` expansion)
@@ -123,4 +123,4 @@ KANBAN card [23].[^spheresgd]
 - [Dimension reduction](/pipeline/dimension-reduction.md) — appends to `procedures`
 - [ADR-0004](/decisions/adr-0004-godot-data-poem-embeddings.md) — godot consumes this schema directly
 
-[^spheresgd]: godot/spheres.gd (read during 2026-11-24 bundle rebuild)
+[^spheresgd]: godot/stars/spheres.gd (read during 2026-11-24 bundle rebuild)

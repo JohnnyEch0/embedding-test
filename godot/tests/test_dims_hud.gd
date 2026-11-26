@@ -1,6 +1,6 @@
 extends SceneTree
 
-## Headless unit test for DimsHud (res://dims_hud.gd).
+## Headless unit test for DimsHud (res://dims/dims_hud.gd).
 ##
 ## Run from the godot/ project directory:
 ##     godot --headless -s test_dims_hud.gd
@@ -9,8 +9,8 @@ extends SceneTree
 ## A Label works headless (no rendering, just state), so the full
 ## bind -> advance -> refresh path is covered.
 
-const DimMapScript := preload("res://dim_map.gd")
-const DimsHudScript := preload("res://dims_hud.gd")
+const DimMapScript := preload("res://dims/dim_map.gd")
+const DimsHudScript := preload("res://dims/dims_hud.gd")
 
 var _checks := 0
 var _failures := 0

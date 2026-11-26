@@ -28,6 +28,15 @@ context, `KANBAN.md`.
 
 ## 2026-11-26
 
+- **Godot project restructured into feature directories** (card [29]): flat
+  `godot/` layout moved into `app/`, `stars/`, `dims/`, `camera/`, `intro/`
+  (mother scene merged with its child scenes), and `tests/`; `resources/`
+  and `data/` unchanged; unused `scripts/view_settings.gd` scaffold deleted.
+  All `res://` references and the `project.godot` main scene updated; `.uid`
+  companions moved with their scripts (uids stable). No behavior change —
+  headless tests now run as `godot --headless -s tests/test_<unit>.gd`
+  (`3d7e52c`).
+
 - **Intro EmbStar reuse + camera framing** (card [28], PR #22 follow-ups):
   intro stars reuse `emb_star.tscn` (the app's basic visualization unit)
   instead of hand-rolled meshes — EmbStar's fixed-size `Label3D` fixes the

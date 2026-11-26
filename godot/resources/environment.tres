@@ -1,6 +1,6 @@
 [gd_resource type="Environment" format=3 uid="uid://3080cs02ogjw"]
 
-[ext_resource type="Shader" uid="uid://d0ghiwya5633m" path="res://space.gdshader" id="1_f7h4m"]
+[ext_resource type="Shader" uid="uid://d0ghiwya5633m" path="res://stars/space.gdshader" id="1_f7h4m"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_h2yge"]
 shader = ExtResource("1_f7h4m")
