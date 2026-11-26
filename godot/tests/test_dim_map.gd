@@ -1,6 +1,6 @@
 extends SceneTree
 
-## Headless unit test for DimMap (res://dim_map.gd).
+## Headless unit test for DimMap (res://dims/dim_map.gd).
 ##
 ## Run from the godot/ project directory:
 ##     godot --headless -s test_dim_map.gd
@@ -8,7 +8,7 @@ extends SceneTree
 ## Exit code 0 = all checks pass, 1 = at least one failure.
 ## One "FAIL:" line is printed per failed check; a summary line always prints.
 
-const DimMapScript := preload("res://dim_map.gd")
+const DimMapScript := preload("res://dims/dim_map.gd")
 
 var _checks := 0
 var _failures := 0

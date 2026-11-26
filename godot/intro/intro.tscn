@@ -1,7 +1,7 @@
 [gd_scene load_steps=9 format=3 uid="uid://bintro0mother0"]
 
-[ext_resource type="Script" path="res://intro.gd" id="1_intro"]
-[ext_resource type="Shader" uid="uid://d0ghiwya5633m" path="res://space.gdshader" id="2_space"]
+[ext_resource type="Script" path="res://intro/intro.gd" id="1_intro"]
+[ext_resource type="Shader" uid="uid://d0ghiwya5633m" path="res://stars/space.gdshader" id="2_space"]
 [ext_resource type="PackedScene" path="res://intro/title_scene.tscn" id="3_title"]
 [ext_resource type="PackedScene" path="res://intro/stars_scene.tscn" id="4_stars"]
 [ext_resource type="PackedScene" path="res://intro/camera_scene.tscn" id="5_camera"]

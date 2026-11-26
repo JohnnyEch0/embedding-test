@@ -1,6 +1,6 @@
 extends SceneTree
 
-## Headless unit test for InputHandler (res://input_handler.gd).
+## Headless unit test for InputHandler (res://dims/input_handler.gd).
 ##
 ## Run from the godot/ project directory:
 ##     godot --headless -s test_input_handler.gd
@@ -13,7 +13,7 @@ extends SceneTree
 ## `toggle_automation` (no such action in the InputMap -- dead branch).
 ## Both need manual/editor coverage.
 
-const InputHandlerScript := preload("res://input_handler.gd")
+const InputHandlerScript := preload("res://dims/input_handler.gd")
 
 var _checks := 0
 var _failures := 0
