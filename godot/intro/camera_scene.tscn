@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bcamera0scene0"]
+
+[ext_resource type="Script" path="res://intro/camera_scene.gd" id="1_camera"]
+
+[node name="CameraScene" type="Node"]
+script = ExtResource("1_camera")

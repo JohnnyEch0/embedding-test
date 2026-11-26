@@ -1,0 +1,33 @@
+[gd_scene format=3 uid="uid://dajaqat110052"]
+
+[ext_resource type="Script" uid="uid://brfygucw7rrc8" path="res://intro/title_scene.gd" id="1_title"]
+
+[node name="TitleScene" type="Node" unique_id=2088413889]
+script = ExtResource("1_title")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=298202422]
+
+[node name="Title" type="Label" parent="CanvasLayer" unique_id=889674242]
+modulate = Color(1, 1, 1, 0)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 64
+text = "PROJECT NAME"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Subtitle" type="Label" parent="CanvasLayer" unique_id=462637831]
+modulate = Color(1, 1, 1, 0)
+anchors_preset = -1
+anchor_top = 0.3
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 24
+text = "An interactive visualisation of how machines encode meaning from language"
+horizontal_alignment = 1
+vertical_alignment = 1

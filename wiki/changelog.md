@@ -4,12 +4,12 @@ title: EmbVis Changelog
 description: Notable changes to the EmbVis project, newest first.
 tags: [changelog]
 status: stable
-generated: { by: pi/1.5.2, at: 2026-11-25T14:21:07Z }
+generated: { by: pi/1.5.2, at: 2026-11-26T10:08:42Z }
 sources:
   - id: kanban
     resource: KANBAN.md
     title: KANBAN.md (done cards with commit refs)
-    last_modified: 2026-11-24
+    last_modified: 2026-11-26
   - id: vocab
     resource: api_gemma_vocabulary.py
     title: api_gemma_vocabulary.py (vocab index builder)
@@ -18,7 +18,7 @@ sources:
     resource: api_gemma_nearest_n.py
     title: api_gemma_nearest_n.py (nearest-word annotator)
     last_modified: 2026-11-25
-usage_window: { from: 2026-11-24, to: 2026-11-25 }
+usage_window: { from: 2026-11-24, to: 2026-11-26 }
 ---
 
 # Changelog
@@ -26,8 +26,31 @@ usage_window: { from: 2026-11-24, to: 2026-11-25 }
 Notable changes only. For the full commit history, see `git log`; for task
 context, `KANBAN.md`.
 
+## 2026-11-26
+
+- **Intro EmbStar reuse + camera framing** (card [28], PR #22 follow-ups):
+  intro stars reuse `emb_star.tscn` (the app's basic visualization unit)
+  instead of hand-rolled meshes — EmbStar's fixed-size `Label3D` fixes the
+  ~3 px tall intro labels; the camera glide now looks at the centroid of
+  the star positions (auto-derived, geometry defined once in
+  `stars_scene.gd`) so the final ~20% no longer faces away from the
+  cluster; the identical tween-kill `skip()` is hoisted into the
+  `IntroScene` base (`35481ad`, `3bb7f75`, `c118a54`).
+
 ## 2026-11-25
 
+- **Intro fixes** (card [28]): star line mesh joins stars in order (vertex
+  pairs, not one-vertex-per-star), failed scene switch re-arms the intro
+  (Esc retry instead of a dead end), a deferred `_play` queued before
+  `skip_all` no longer starts a child under the fade, and `test_intro.gd`
+  now smoke-runs the real Title/Stars/Camera scenes under the mother
+  (`4df5a53`, `53910ff`, `dcea41f`, `dfc4928`).
+- **Intro mother scene** (card [28]): `intro.tscn` replaces `main.tscn` as the
+  app's main scene — plays handcrafted `IntroScene` children (title/subtitle
+  fades, labelled stars, camera glide) then error-checks a fade-out switch
+  back to `main.tscn`; new `skip_step` (Space) / `skip_all` (Esc) actions and
+  headless test `test_intro.gd`. Documented as a new concept:
+  [intro-scene](/godot/intro-scene.md).
 - **Nearest-words stage** (`281c586`): `api_gemma_vocabulary.py` builds a
   10k-word embedding index in `out/vocab_10k/` (resumable shards, unit-norm
   check); `api_gemma_nearest_n.py` annotates poem JSONs with the top-`n`
