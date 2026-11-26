@@ -4,12 +4,12 @@ title: EmbVis Changelog
 description: Notable changes to the EmbVis project, newest first.
 tags: [changelog]
 status: stable
-generated: { by: pi/1.5.2, at: 2026-11-25T14:21:07Z }
+generated: { by: pi/1.5.2, at: 2026-11-26T10:08:42Z }
 sources:
   - id: kanban
     resource: KANBAN.md
     title: KANBAN.md (done cards with commit refs)
-    last_modified: 2026-11-24
+    last_modified: 2026-11-26
   - id: vocab
     resource: api_gemma_vocabulary.py
     title: api_gemma_vocabulary.py (vocab index builder)
@@ -18,13 +18,24 @@ sources:
     resource: api_gemma_nearest_n.py
     title: api_gemma_nearest_n.py (nearest-word annotator)
     last_modified: 2026-11-25
-usage_window: { from: 2026-11-24, to: 2026-11-25 }
+usage_window: { from: 2026-11-24, to: 2026-11-26 }
 ---
 
 # Changelog
 
 Notable changes only. For the full commit history, see `git log`; for task
 context, `KANBAN.md`.
+
+## 2026-11-26
+
+- **Intro EmbStar reuse + camera framing** (card [28], PR #22 follow-ups):
+  intro stars reuse `emb_star.tscn` (the app's basic visualization unit)
+  instead of hand-rolled meshes — EmbStar's fixed-size `Label3D` fixes the
+  ~3 px tall intro labels; the camera glide now looks at the centroid of
+  the star positions (auto-derived, geometry defined once in
+  `stars_scene.gd`) so the final ~20% no longer faces away from the
+  cluster; the identical tween-kill `skip()` is hoisted into the
+  `IntroScene` base (`35481ad`, `3bb7f75`, `c118a54`).
 
 ## 2026-11-25
 

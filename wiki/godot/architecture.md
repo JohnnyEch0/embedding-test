@@ -4,7 +4,7 @@ title: Godot App Architecture
 description: Node graph and model/input/view split of the star visualization (main.tscn, Spheres, DimMap, InputHandler, AutoOrbit).
 tags: [godot, architecture, visualization, scene-graph]
 status: stable
-generated: { by: pi/1.5.2, at: 2026-11-24T14:00:35Z }
+generated: { by: pi/1.5.2, at: 2026-11-26T10:08:42Z }
 stale_after: 2027-02-24T00:00:00Z
 sources:
   - id: maingd
@@ -45,7 +45,7 @@ The app follows a **model / input / view** split (ADR-0005):
 | `InputHandler` | `input_handler.gd` | **Input** — raw events → semantic signals; no scene knowledge |
 | `AutoOrbit` | `auto_orbit.gd` | Camera orbit automation; `fit(box, cone)` on rebuild, `rotation_completed` → next line |
 | `CharacterBody3D` | `character_body_3d.gd` | Manual WASD/space/shift flight; `manual` mirrors `!automation` |
-| `EmbStar` | `emb_star.tscn` / `emb_star.gd` | One star: `MeshInstance3D` + `Label3D` |
+| `EmbStar` | `emb_star.tscn` / `emb_star.gd` | One star: `MeshInstance3D` + `Label3D` + per-star `OmniLight3D`; also reused by the intro stars scene ([Intro mother scene](/godot/intro-scene.md)) |
 | `DimsHud` | `dims_hud.gd` | **View** — `Label` on `CanvasLayer` in `main.tscn`; bound observer of `DimMap` (`bind()` tracks `changed`), renders `dims X:.. Y:.. Z:.. (of ..)`; layout lives in the scene |
 
 ## Startup sequence
