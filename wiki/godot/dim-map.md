@@ -4,29 +4,29 @@ title: DimMap — X/Y/Z Dimension Mapping
 description: Pure state for which embedding dimension is displayed on each spatial axis, with window and per-axis advance semantics.
 tags: [godot, dim-map, dimension-mapping, state]
 status: stable
-generated: { by: pi/1.5.2, at: 2026-11-24T14:00:35Z }
+generated: { by: pi/1.5.2, at: 2026-11-26T12:05:50Z }
 stale_after: 2027-02-24T00:00:00Z
 sources:
   - id: dimmapgd
-    resource: godot/dim_map.gd
-    title: dim_map.gd (DimMap source)
+    resource: godot/dims/dim_map.gd
+    title: dims/dim_map.gd (DimMap source)
     last_modified: 2026-11-24
   - id: inputmap
     resource: godot/project.godot
     title: project.godot (dim_* input actions)
     last_modified: 2026-11-24
   - id: dimshudgd
-    resource: godot/dims_hud.gd
-    title: dims_hud.gd (DimsHud bound observer)
+    resource: godot/dims/dims_hud.gd
+    title: dims/dims_hud.gd (DimsHud bound observer)
     last_modified: 2026-11-24
 usage_window: { from: 2026-11-24, to: 2026-11-24 }
 ---
 
 # DimMap
 
-`DimMap` (godot/dim_map.gd) is a pure `RefCounted` — no scene, mesh, or input
-knowledge. `main.gd` feeds it keypresses via `InputHandler` signals;
-`spheres.gd` consumes the mapping. This is what makes the switching logic
+`DimMap` (godot/dims/dim_map.gd) is a pure `RefCounted` — no scene, mesh, or input
+knowledge. `app/main.gd` feeds it keypresses via `InputHandler` signals;
+`stars/spheres.gd` consumes the mapping. This is what makes the switching logic
 headless-testable (see [Headless testing](/godot/headless-testing.md)).
 
 ## State
@@ -59,7 +59,7 @@ The `dim_*`/`next_dims`/`prev_dims` actions are dispatched with
 `next_dims` (checked first) and the reverse actions are unreachable. That bug
 was fixed in `1e9dc47`.[^inputmap]
 
-HUD readout: `DimsHud` (`godot/dims_hud.gd`, a `Label` in `main.tscn`) is a
+HUD readout: `DimsHud` (`godot/dims/dims_hud.gd`, a `Label` in `app/main.tscn`) is a
 bound observer — `bind(map)` renders `dims  X:%d  Y:%d  Z:%d  (of %d)` and
 tracks `changed`; identity wraps are silent upstream, so no spurious
 refreshes.[^dimshudgd]
@@ -69,6 +69,6 @@ refreshes.[^dimshudgd]
 - [Architecture](/godot/architecture.md) — where DimMap sits
 - [Headless testing](/godot/headless-testing.md) — `test_dim_map.gd`
 
-[^dimmapgd]: godot/dim_map.gd (read during 2026-11-24 bundle rebuild)
-[^inputmap]: godot/project.godot + godot/input_handler.gd (read during 2026-11-24 bundle rebuild)
-[^dimshudgd]: godot/dims_hud.gd (read during 2026-11-24 bundle rebuild)
+[^dimmapgd]: godot/dims/dim_map.gd (read during 2026-11-24 bundle rebuild)
+[^inputmap]: godot/project.godot + godot/dims/input_handler.gd (read during 2026-11-24 bundle rebuild)
+[^dimshudgd]: godot/dims/dims_hud.gd (read during 2026-11-24 bundle rebuild)

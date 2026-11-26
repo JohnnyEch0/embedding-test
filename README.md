@@ -17,9 +17,9 @@ Takes a directory with markdown poems and transformes them into embeddings.
 
 ## godot/
 Star visualization. Which embedding dimensions are shown on the X/Y/Z axes
-is steered by `dim_map.gd` (pure state, headless-testable via
-`godot --headless -s test_dim_map.gd`; its HUD via
-`godot --headless -s test_dims_hud.gd`):
+is steered by `godot/dims/dim_map.gd` (pure state, headless-testable via
+`godot --headless -s tests/test_dim_map.gd`; its HUD via
+`godot --headless -s tests/test_dims_hud.gd`):
 - `R` / `Shift+R` — next / previous trio of dimensions
 - `F` / `G` / `H` (+shift for reverse) — step the dimension on the X / Y / Z axis,
   skipping dimensions already shown on other axes (`enforce_distinct`, default on)

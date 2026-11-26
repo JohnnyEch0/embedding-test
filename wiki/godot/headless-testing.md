@@ -8,19 +8,19 @@ generated: { by: pi/1.5.2, at: 2026-11-26T10:26:06Z }
 stale_after: 2027-02-24T00:00:00Z
 sources:
   - id: testdimmap
-    resource: godot/test_dim_map.gd
+    resource: godot/tests/test_dim_map.gd
     title: test_dim_map.gd (DimMap tests)
     last_modified: 2026-11-24
   - id: testinput
-    resource: godot/test_input_handler.gd
+    resource: godot/tests/test_input_handler.gd
     title: test_input_handler.gd (InputHandler dispatch tests)
     last_modified: 2026-11-24
   - id: testdimshud
-    resource: godot/test_dims_hud.gd
+    resource: godot/tests/test_dims_hud.gd
     title: test_dims_hud.gd (DimsHud bind/refresh tests)
     last_modified: 2026-11-24
   - id: testintro
-    resource: godot/test_intro.gd
+    resource: godot/tests/test_intro.gd
     title: test_intro.gd (intro mother/base-contract/smoke tests)
     last_modified: 2026-11-26
 usage_window: { from: 2026-11-24, to: 2026-11-26 }
@@ -37,7 +37,7 @@ Tests `extend SceneTree`, `preload` the script under test, drive it with
 synthetic inputs (for `InputHandler`, real `InputEvent`s dispatched against
 the project's loaded InputMap), count checks, print one `FAIL:` line per
 failure plus a summary. **Exit code 0 = all pass, 1 = at least one
-failure.** Run from `godot/`: `godot --headless -s test_<unit>.gd`.
+failure.** Run from `godot/`: `godot --headless -s tests/test_<unit>.gd`.
 
 Tests that need the tree to advance (deferred calls, tweens) drive frames
 via `process_frame` state machines — `test_intro.gd` is the frame-driven
@@ -73,6 +73,6 @@ runbook.[^testdimmap]
 - [DimMap](/godot/dim-map.md) — the primary tested unit
 - [Run tests](/runbooks/run-tests.md)
 
-[^testdimmap]: godot/test_dim_map.gd, godot/test_input_handler.gd, test_*.py (read during 2026-11-24 bundle rebuild)
-[^testinput]: godot/test_input_handler.gd (read during 2026-11-24 bundle rebuild)
-[^testintro]: godot/test_intro.gd (read during 2026-11-26 intro fix round)
+[^testdimmap]: godot/tests/test_dim_map.gd, godot/tests/test_input_handler.gd, test_*.py (read during 2026-11-24 bundle rebuild)
+[^testinput]: godot/tests/test_input_handler.gd (read during 2026-11-24 bundle rebuild)
+[^testintro]: godot/tests/test_intro.gd (read during 2026-11-26 intro fix round)

@@ -4,7 +4,7 @@ title: EmbVis Architecture Overview
 description: High-level architecture and data flow of the embedding visualization project.
 tags: [architecture, overview]
 status: stable
-generated: { by: pi/1.5.2, at: 2026-11-24T14:00:35Z }
+generated: { by: pi/1.5.2, at: 2026-11-26T12:05:50Z }
 stale_after: 2027-02-24T00:00:00Z
 sources:
   - id: readme
@@ -16,8 +16,8 @@ sources:
     title: data.py
     last_modified: 2026-11-19
   - id: maingd
-    resource: godot/main.gd
-    title: godot/main.gd
+    resource: godot/app/main.gd
+    title: godot/app/main.gd
     last_modified: 2026-11-24
 usage_window: { from: 2026-11-24, to: 2026-11-24 }
 ---
@@ -54,8 +54,8 @@ One JSON schema end-to-end: the [Poem-Embeddings format](/data-format.md).
 | Dimension reduction | `dimension_reduction.py` | Stage 2 — step pipeline over the corpus, writes d32 JSON |
 | Data layer | `data.py` | Typed records (`WordEmb`…`PoemEmb`) + `PoemEmbeddings` store |
 | Auth | `auth.py` | OpenAI-compatible client for `llm.scads.ai`, key from `~/.tudai-api-key` |
-| Godot app | `godot/` | Star visualization: `main.gd` (wiring), `spheres.gd` (data + stars), `dim_map.gd` (axis state), `input_handler.gd` (signals), `dims_hud.gd` (readout), `auto_orbit.gd`, `emb_star.tscn` |
-| Tests | `test_api_gemma.py`, `test_data.py`, `godot/test_*.gd` | pytest + headless GDScript |
+| Godot app | `godot/` | Star visualization: `app/main.gd` (wiring), `stars/spheres.gd` (data + stars), `dims/dim_map.gd` (axis state), `dims/input_handler.gd` (signals), `dims/dims_hud.gd` (readout), `camera/auto_orbit.gd`, `stars/emb_star.tscn` |
+| Tests | `test_api_gemma.py`, `test_data.py`, `godot/tests/test_*.gd` | pytest + headless GDScript |
 | Task tracking | `KANBAN.md` | Cards 1–22, commit-referenced (see [Agent conventions](/conventions/agent-conventions.md)) |
 
 ## Design shape
@@ -65,7 +65,7 @@ One JSON schema end-to-end: the [Poem-Embeddings format](/data-format.md).
   poem; provenance is recorded in `metadata.procedures`.
 - **Godot is model/input/view split** ([ADR-0005](/decisions/adr-0005-godot-model-input-view-split.md)):
   `DimMap` is pure state, `InputHandler` maps raw events to semantic signals,
-  `main.gd` only wires. The split exists so the core is
+  `app/main.gd` only wires. The split exists so the core is
   [headless-testable](/godot/headless-testing.md).
 - **Decisions live in [decisions/](decisions/index.md)** (ADRs 0001–0005).
 

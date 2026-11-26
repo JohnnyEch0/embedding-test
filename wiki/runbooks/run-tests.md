@@ -12,12 +12,12 @@ sources:
     title: test_data.py
     last_modified: 2026-11-19
   - id: testinput
-    resource: godot/test_input_handler.gd
+    resource: godot/tests/test_input_handler.gd
     title: godot headless tests
     last_modified: 2026-11-24
   - id: testintro
-    resource: godot/test_intro.gd
-    title: godot/test_intro.gd
+    resource: godot/tests/test_intro.gd
+    title: godot/tests/test_intro.gd
     last_modified: 2026-11-26
 usage_window: { from: 2026-11-24, to: 2026-11-26 }
 ---
@@ -42,10 +42,10 @@ suite dies at import, not at a test.
 
 ```bash
 cd godot
-godot --headless -s test_intro.gd
-godot --headless -s test_dim_map.gd
-godot --headless -s test_input_handler.gd
-godot --headless -s test_dims_hud.gd
+godot --headless -s tests/test_intro.gd
+godot --headless -s tests/test_dim_map.gd
+godot --headless -s tests/test_input_handler.gd
+godot --headless -s tests/test_dims_hud.gd
 ```
 
 If `godot` is not on `PATH`, invoke the engine binary directly (here
