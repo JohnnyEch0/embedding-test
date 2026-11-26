@@ -51,8 +51,8 @@ The app follows a **model / input / view** split (ADR-0005):
 | `DimMap` | `dim_map.gd` | **Model** — pure `RefCounted` state for the X/Y/Z dimension mapping; no scene refs (see [DimMap](/godot/dim-map.md)) |
 | `InputHandler` | `input_handler.gd` | **Input** — raw events → semantic signals; no scene knowledge |
 | `AutoOrbit` | `auto_orbit.gd` | Camera orbit automation; `fit(box, cone)` on rebuild, `rotation_completed` → next line |
-| `CharacterBody3D` | `character_body_3d.gd` | Manual WASD/space/shift flight; `manual` mirrors `!automation` |
-| `EmbStar` | `emb_star.tscn` / `emb_star.gd` | One star: `MeshInstance3D` + `Label3D` + per-star `OmniLight3D`; also reused by the intro stars scene ([Intro mother scene](/godot/intro-scene.md)) |
+| `CharacterBody3D` | `camera_rig.gd` | Manual WASD/space/shift flight; `manual` mirrors `!automation` |
+| `EmbStar` | `emb_star.tscn` / `emb_star.gd` | One star: `MeshInstance3D` + `Label3D` |
 | `DimsHud` | `dims_hud.gd` | **View** — `Label` on `CanvasLayer` in `main.tscn`; bound observer of `DimMap` (`bind()` tracks `changed`), renders `dims X:.. Y:.. Z:.. (of ..)`; layout lives in the scene |
 
 ## Startup sequence
