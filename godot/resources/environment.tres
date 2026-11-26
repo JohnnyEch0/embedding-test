@@ -1,0 +1,21 @@
+[gd_resource type="Environment" format=3 uid="uid://3080cs02ogjw"]
+
+[ext_resource type="Shader" uid="uid://d0ghiwya5633m" path="res://space.gdshader" id="1_f7h4m"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_h2yge"]
+shader = ExtResource("1_f7h4m")
+shader_parameter/noise_scale = 8.0
+shader_parameter/noise_strength = 0.04
+shader_parameter/tint_a = Color(0.01, 0.015, 0.03, 1)
+shader_parameter/tint_b = Color(0.03, 0.01, 0.025, 1)
+
+[sub_resource type="Sky" id="Sky_x8060"]
+sky_material = SubResource("ShaderMaterial_h2yge")
+
+[resource]
+background_mode = 2
+background_energy_multiplier = 8.23
+sky = SubResource("Sky_x8060")
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.01
+volumetric_fog_sky_affect = 0.2

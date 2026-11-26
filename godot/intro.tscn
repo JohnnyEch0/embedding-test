@@ -1,41 +1,26 @@
-[gd_scene load_steps=9 format=3 uid="uid://bintro0mother0"]
+[gd_scene format=3 uid="uid://d0q2sgf56gm7d"]
 
-[ext_resource type="Script" path="res://intro.gd" id="1_intro"]
-[ext_resource type="Shader" uid="uid://d0ghiwya5633m" path="res://space.gdshader" id="2_space"]
-[ext_resource type="PackedScene" path="res://intro/title_scene.tscn" id="3_title"]
-[ext_resource type="PackedScene" path="res://intro/stars_scene.tscn" id="4_stars"]
-[ext_resource type="PackedScene" path="res://intro/camera_scene.tscn" id="5_camera"]
+[ext_resource type="Script" uid="uid://bvd4kh0tgrfqh" path="res://intro.gd" id="1_intro"]
+[ext_resource type="PackedScene" uid="uid://dajaqat110052" path="res://intro/title_scene.tscn" id="3_title"]
+[ext_resource type="PackedScene" uid="uid://ckyg5at110052" path="res://intro/stars_scene.tscn" id="4_stars"]
+[ext_resource type="PackedScene" uid="uid://bhxkgrqi8krk4" path="res://intro/camera_scene.tscn" id="5_camera"]
+[ext_resource type="Environment" uid="uid://3080cs02ogjw" path="res://resources/environment.tres" id="5_y72e6"]
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_intro"]
-shader = ExtResource("2_space")
-shader_parameter/noise_scale = 8.0
-shader_parameter/noise_strength = 0.04
-shader_parameter/tint_a = Color(0.01, 0.015, 0.03, 1)
-shader_parameter/tint_b = Color(0.03, 0.01, 0.025, 1)
-
-[sub_resource type="Sky" id="Sky_intro"]
-sky_material = SubResource("ShaderMaterial_intro")
-
-[sub_resource type="Environment" id="Environment_intro"]
-background_mode = 2
-background_energy_multiplier = 8.23
-sky = SubResource("Sky_intro")
-
-[node name="Intro" type="Node3D"]
+[node name="Intro" type="Node3D" unique_id=1327819416]
 script = ExtResource("1_intro")
-scenes = [ExtResource("3_title"), ExtResource("4_stars"), ExtResource("5_camera")]
+scenes = Array[PackedScene]([ExtResource("3_title"), ExtResource("4_stars"), ExtResource("5_camera")])
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource("Environment_intro")
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1890822809]
+environment = ExtResource("5_y72e6")
 
-[node name="Camera3D" type="Camera3D" parent="."]
+[node name="Camera3D" type="Camera3D" parent="." unique_id=1022039443]
 current = true
 
-[node name="SceneSlot" type="Node" parent="."]
+[node name="SceneSlot" type="Node" parent="." unique_id=1208374540]
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=766669606]
 
-[node name="HintLabel" type="Label" parent="CanvasLayer"]
+[node name="HintLabel" type="Label" parent="CanvasLayer" unique_id=1406049526]
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
@@ -48,7 +33,8 @@ grow_vertical = 0
 text = "Space: skip scene  ·  Esc: go to app"
 horizontal_alignment = 1
 
-[node name="FadeRect" type="ColorRect" parent="CanvasLayer"]
+[node name="FadeRect" type="ColorRect" parent="CanvasLayer" unique_id=578786400]
+self_modulate = Color(1, 1, 1, 0)
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -56,4 +42,3 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
-self_modulate = Color(1, 1, 1, 0)

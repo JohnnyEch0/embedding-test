@@ -3,29 +3,11 @@
 [ext_resource type="Script" uid="uid://buwiedcpbttlm" path="res://camera_rig.gd" id="1_0xm2m"]
 [ext_resource type="Script" uid="uid://ct1hpf3weoa8x" path="res://main.gd" id="1_h2yge"]
 [ext_resource type="Script" uid="uid://t7cwwx4rwxi0" path="res://spheres.gd" id="1_ig7tw"]
-[ext_resource type="Shader" uid="uid://d0ghiwya5633m" path="res://space.gdshader" id="2_1bvp3"]
+[ext_resource type="Environment" uid="uid://3080cs02ogjw" path="res://resources/environment.tres" id="2_5vw27"]
 [ext_resource type="Script" uid="uid://db1ckkjyudw5q" path="res://auto_orbit.gd" id="5_lquwl"]
 [ext_resource type="Script" uid="uid://cufxrrl55ss6n" path="res://controls_label.gd" id="6_7mycd"]
 [ext_resource type="Script" uid="uid://bq2074vapvpdr" path="res://input_handler.gd" id="7_input"]
 [ext_resource type="Script" uid="uid://cbbrc8nda546l" path="res://dims_hud.gd" id="8_dimshud"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_h2yge"]
-shader = ExtResource("2_1bvp3")
-shader_parameter/noise_scale = 8.0
-shader_parameter/noise_strength = 0.04
-shader_parameter/tint_a = Color(0.01, 0.015, 0.03, 1)
-shader_parameter/tint_b = Color(0.03, 0.01, 0.025, 1)
-
-[sub_resource type="Sky" id="Sky_x8060"]
-sky_material = SubResource("ShaderMaterial_h2yge")
-
-[sub_resource type="Environment" id="Environment_aa68f"]
-background_mode = 2
-background_energy_multiplier = 8.23
-sky = SubResource("Sky_x8060")
-volumetric_fog_enabled = true
-volumetric_fog_density = 0.01
-volumetric_fog_sky_affect = 0.2
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_aa68f"]
 
@@ -42,7 +24,7 @@ show_line_stars = true
 show_poem_stars = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=647563580]
-environment = SubResource("Environment_aa68f")
+environment = ExtResource("2_5vw27")
 
 [node name="CharacterBody3D" type="CharacterBody3D" parent="." unique_id=720621408]
 script = ExtResource("1_0xm2m")
