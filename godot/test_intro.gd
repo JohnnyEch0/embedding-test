@@ -169,7 +169,19 @@ func _test_star_lines() -> void:
 	var stars: StarsScene = StarsTscn.instantiate()
 	root.add_child(stars)
 	stars.start()
-	var expected: int = 2 * (mini(stars.positions.size(), stars.words.size()) - 1)
+	# stars reuse EmbStar with readable, initially hidden labels
+	var count: int = mini(stars.positions.size(), stars.words.size())
+	_check(stars._stars.size() == count, "stars: one EmbStar per word")
+	for i in stars._stars.size():
+		var star: EmbStar = stars._stars[i]
+		var label: Label3D = star.get_node("Label3D")
+		_check(label.text == stars.words[i],
+			"stars: EmbStar label is the word (%d)" % i)
+		_check(label.visibility_range_end > 120.0,
+			"stars: label visible at intro distance (%d)" % i)
+		_check(is_equal_approx(label.modulate.a, 0.0),
+			"stars: label starts transparent for the fade-in (%d)" % i)
+	var expected: int = 2 * (count - 1)
 	var lines := stars.get_node_or_null("Lines") as MeshInstance3D
 	var got := -1
 	if lines != null and lines.mesh is ArrayMesh:
