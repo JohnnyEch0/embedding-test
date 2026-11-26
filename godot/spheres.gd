@@ -222,7 +222,7 @@ func find_cluster_cone(star_data: Array[EmbStarData]) -> Dictionary:
 		"volume": omega / 3.0 * (pow(r_max, 3) - pow(r_min, 3)),
 	}
 
-func create_stars(star_data) -> void:
+func create_stars(star_data: Array[EmbStarData]) -> void:
 	var pairs: Array = []
 	var prev: MeshInstance3D = null
 	for sd in star_data:
