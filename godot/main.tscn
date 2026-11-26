@@ -7,7 +7,7 @@
 [ext_resource type="Script" uid="uid://db1ckkjyudw5q" path="res://auto_orbit.gd" id="5_lquwl"]
 [ext_resource type="Script" uid="uid://cufxrrl55ss6n" path="res://controlls_label.gd" id="6_7mycd"]
 [ext_resource type="Script" uid="uid://bq2074vapvpdr" path="res://input_handler.gd" id="7_input"]
-[ext_resource type="Script" path="res://dims_hud.gd" id="8_dimshud"]
+[ext_resource type="Script" uid="uid://cbbrc8nda546l" path="res://dims_hud.gd" id="8_dimshud"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_h2yge"]
 shader = ExtResource("2_1bvp3")
@@ -70,10 +70,9 @@ script = ExtResource("7_input")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=118139904]
 
-[node name="DimsHud" type="Label" parent="CanvasLayer"]
+[node name="DimsHud" type="Label" parent="CanvasLayer" unique_id=1340213913]
 offset_left = 12.0
 offset_top = 12.0
-mouse_filter = 2
 text = "dims  X:0  Y:1  Z:2  (of 3)"
 label_settings = SubResource("LabelSettings_dimshud")
 script = ExtResource("8_dimshud")

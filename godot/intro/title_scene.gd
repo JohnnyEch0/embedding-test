@@ -8,8 +8,8 @@ extends IntroScene
 @export var sub_in := 3.0
 @export var sub_hold := 3.0
 @export var sub_out := 1.5
-@export var title_text := "PROJECT NAME"
-@export var sub_text := "An interactive visualisation of how machines encode meaning from language"
+@export var title_text := "Embedding Space"
+@export var sub_text := "An interactive visualisation of how machines represent everyday language"
 
 var _tween: Tween = null
 
