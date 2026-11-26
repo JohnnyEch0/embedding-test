@@ -7,12 +7,12 @@ status: stable
 generated: { by: pi/1.5.2, at: 2026-11-24T14:00:35Z }
 sources:
   - id: dimmapgd
-    resource: godot/dim_map.gd
-    title: dim_map.gd
+    resource: godot/dims/dim_map.gd
+    title: dims/dim_map.gd
     last_modified: 2026-11-24
   - id: inputhandlergd
-    resource: godot/input_handler.gd
-    title: input_handler.gd
+    resource: godot/dims/input_handler.gd
+    title: dims/input_handler.gd
     last_modified: 2026-11-24
   - id: kanban
     resource: KANBAN.md
@@ -45,7 +45,7 @@ Split by responsibility:
   (`next_line_requested`, `dims_window_requested(dir)`,
   `dim_axis_requested(axis, dir)`, `automation_toggled`,
   `user_input_detected`, `debug_toggled`); no scene knowledge.
-- **`main.gd`** — wiring only: connect signals, own app state, rebuild.
+- **`app/main.gd`** — wiring only: connect signals, own app state, rebuild.
 
 ## Consequences
 
@@ -53,7 +53,7 @@ Split by responsibility:
   loose-match bug was found and fixed via `exact_match` (`1e9dc47`).
 - User input terminates dispatch (a takeover event never also advances a
   line or toggles a debug overlay).
-- - **`DimsHud`** — `Label` on `CanvasLayer` in `main.tscn` (`dims_hud.gd`),
+- - **`DimsHud`** — `Label` on `CanvasLayer` in `app/main.tscn` (`dims/dims_hud.gd`),
   a bound observer of `DimMap` (`bind()` tracks `changed`); layout lives in
   the scene. Completed the split on 2026-11-24 (card [22], `d639f74` /
   `480225b`) with headless test `test_dims_hud.gd`.

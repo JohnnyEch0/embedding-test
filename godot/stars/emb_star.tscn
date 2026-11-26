@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cqi0dd6rigmra"]
 
-[ext_resource type="Script" uid="uid://bo3nvaduvj7wk" path="res://emb_star.gd" id="1_fdhmq"]
+[ext_resource type="Script" uid="uid://bo3nvaduvj7wk" path="res://stars/emb_star.gd" id="1_fdhmq"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7lpdu"]
 emission_enabled = true

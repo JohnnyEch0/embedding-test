@@ -46,7 +46,7 @@ as the on-disk schema. Introduced by the typed refactor — see
 - Every record has symmetric `to_dict`/`from_dict`; `PoemEmbeddings.to_dict`
   injects `type: "Poem-Embeddings"` into the metadata header.
 - `VerseEmb.line_range` end is **exclusive** in the Python writer;
-  `godot/spheres.gd` currently consumes it as inclusive (see the off-by-one
+  `godot/stars/spheres.gd` currently consumes it as inclusive (see the off-by-one
   note in [Data format](/data-format.md#known-consumer-bug)).
 - The `__main__` demo block is dead (TODO: rewrite against
   `PoemEmbeddings.load()`).[^datapy]
